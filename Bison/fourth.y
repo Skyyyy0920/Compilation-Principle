@@ -94,7 +94,6 @@ int yylex()
             }
             idStr[i] = '\0';
             strcpy(yylval.str, idStr);
-            cout<<yylval.str<<endl;
             ungetc(t, stdin);
             return ID;
         }

@@ -1381,9 +1381,7 @@ int yylex()
             }
             idStr[i] = '\0';
             strcpy(yylval.str, idStr);
-            cout<<yylval.str<<endl;
             ungetc(t, stdin);
-            //printf("%f\n", character_table[yylval.strval]);
             return ID;
         }
         else{
