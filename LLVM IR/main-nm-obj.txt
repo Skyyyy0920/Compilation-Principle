@@ -1,0 +1,4 @@
+                 U __isoc99_scanf
+0000000000000000 T main
+                 U printf
+                 U __stack_chk_fail

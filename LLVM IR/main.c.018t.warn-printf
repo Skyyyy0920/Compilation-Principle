@@ -1,0 +1,70 @@
+
+;; Function main (main, funcdef_no=0, decl_uid=2344, cgraph_uid=1, symbol_order=0)
+
+main.c:9: printf: objsize = 9223372036854775807, fmtstr = "%d
+"
+  Directive 1 at offset 0: "%d"
+    Result: 1, 1, 11, 11 (1, 1, 11, 11)
+  Directive 2 at offset 2: "
+", length = 1
+    Result: 1, 1, 1, 1 (2, 2, 12, 12)
+  Directive 3 at offset 3: "", length = 1
+main.c:10: printf: objsize = 9223372036854775807, fmtstr = "%d
+"
+  Directive 1 at offset 0: "%d"
+    Result: 1, 1, 11, 11 (1, 1, 11, 11)
+  Directive 2 at offset 2: "
+", length = 1
+    Result: 1, 1, 1, 1 (2, 2, 12, 12)
+  Directive 3 at offset 3: "", length = 1
+main.c:14: printf: objsize = 9223372036854775807, fmtstr = "%d
+"
+  Directive 1 at offset 0: "%d"
+    Result: 1, 1, 11, 11 (1, 1, 11, 11)
+  Directive 2 at offset 2: "
+", length = 1
+    Result: 1, 1, 1, 1 (2, 2, 12, 12)
+  Directive 3 at offset 3: "", length = 1
+int main ()
+{
+  int n;
+  int t;
+  int i;
+  int b;
+  int a;
+  int D.2355;
+
+  <bb 2> :
+  a = 0;
+  b = 1;
+  i = 1;
+  scanf ("%d", &n);
+  printf ("%d\n", a);
+  printf ("%d\n", a);
+  goto <bb 4>; [INV]
+
+  <bb 3> :
+  t = b;
+  b = a + b;
+  printf ("%d\n", b);
+  a = t;
+  i = i + 1;
+
+  <bb 4> :
+  n.0_1 = n;
+  if (i < n.0_1)
+    goto <bb 3>; [INV]
+  else
+    goto <bb 5>; [INV]
+
+  <bb 5> :
+  D.2355 = 0;
+  n = {CLOBBER};
+
+  <bb 6> :
+<L4>:
+  return D.2355;
+
+}
+
+

@@ -1,0 +1,73 @@
+
+;; Function main (main, funcdef_no=0, decl_uid=2344, cgraph_uid=1, symbol_order=0)
+
+
+Analyzing function body size: main/0
+
+IPA function summary for main/0
+  global time:     55.000000
+  self size:       20
+  global size:     0
+  min size:       0
+  self stack:      0
+  global stack:    0
+    size:6.000000, time:7.000000
+    size:2.000000, time:0.000000,  executed if:(not inlined)
+  calls:
+    printf/2 function body not available
+      freq:1.00 loop depth: 1 size: 3 time: 12
+    printf/2 function body not available
+      freq:1.00 loop depth: 0 size: 3 time: 12
+    printf/2 function body not available
+      freq:1.00 loop depth: 0 size: 3 time: 12
+    scanf/1 function body not available
+      freq:1.00 loop depth: 0 size: 3 time: 12
+
+int main ()
+{
+  int n;
+  int t;
+  int i;
+  int b;
+  int a;
+  int D.2355;
+  int n.0_1;
+  int _13;
+
+  <bb 2> :
+  a_6 = 0;
+  b_7 = 1;
+  i_8 = 1;
+  scanf ("%d", &n);
+  printf ("%d\n", a_6);
+  printf ("%d\n", a_6);
+  goto <bb 4>; [INV]
+
+  <bb 3> :
+  t_15 = b_3;
+  b_16 = a_2 + b_3;
+  printf ("%d\n", b_16);
+  a_18 = t_15;
+  i_19 = i_4 + 1;
+
+  <bb 4> :
+  # a_2 = PHI <a_6(2), a_18(3)>
+  # b_3 = PHI <b_7(2), b_16(3)>
+  # i_4 = PHI <i_8(2), i_19(3)>
+  n.0_1 = n;
+  if (i_4 < n.0_1)
+    goto <bb 3>; [INV]
+  else
+    goto <bb 5>; [INV]
+
+  <bb 5> :
+  _13 = 0;
+  n ={v} {CLOBBER};
+
+  <bb 6> :
+<L4>:
+  return _13;
+
+}
+
+
