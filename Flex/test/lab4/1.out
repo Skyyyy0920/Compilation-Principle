@@ -2,17 +2,17 @@
 
 
 	INT	int	1	0
-	ID	a	1	4	0x7ffd6fa30a50
+	ID	a	1	4	0x7ffc89bdba90
 	SEMICOLON	;	1	5
 	INT	int	3	0
-	ID	main	3	4	0x7ffd6fa30a50
+	ID	main	3	4	0x7ffc89bdba90
 	LPAREN	(	3	8
 	RPAREN	)	3	9
 	LBRACE	{	4	0
 	INT	int	5	4
-	ID	a	5	8	0x55a6b736e4d0
+	ID	a	5	8	0x560eb41754d0
 	SEMICOLON	;	5	9
-	ID	a	6	4	0x55a6b736e4d0
+	ID	a	6	4	0x560eb41754d0
 	ASSIGN	=	6	6
 	DECIMIAL	1	6	8	1
 	ADD	+	6	10
@@ -20,7 +20,7 @@
 	SEMICOLON	;	6	13
 	IF	if	7	4
 	LPAREN	(	7	6
-	ID	a	7	7	0x55a6b736e4d0
+	ID	a	7	7	0x560eb41754d0
 	LESS	<	7	9
 	DECIMIAL	5	7	11	5
 	RPAREN	)	7	12
