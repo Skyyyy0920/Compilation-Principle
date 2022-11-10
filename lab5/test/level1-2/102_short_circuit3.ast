@@ -1,0 +1,324 @@
+program
+    Sequence
+        Sequence
+            Sequence
+                Sequence
+                    DeclStmt
+                        Id	name: a	scope: 0	type: int
+                    DeclStmt
+                        Id	name: b	scope: 0	type: int
+                    DeclStmt
+                        Id	name: d	scope: 0	type: int
+                    FunctionDefine function name: set_a, type: int()
+                        DeclStmt
+                            Id	name: val	scope: 1	type: int
+                        CompoundStmt
+                            Sequence
+                                AssignStmt
+                                    Id	name: a	scope: 0	type: int
+                                    Id	name: val	scope: 1	type: int
+                                ReturnStmt
+                                    Id	name: a	scope: 0	type: int
+                FunctionDefine function name: set_b, type: int()
+                    DeclStmt
+                        Id	name: val	scope: 1	type: int
+                    CompoundStmt
+                        Sequence
+                            AssignStmt
+                                Id	name: b	scope: 0	type: int
+                                Id	name: val	scope: 1	type: int
+                            ReturnStmt
+                                Id	name: b	scope: 0	type: int
+            FunctionDefine function name: set_d, type: int()
+                DeclStmt
+                    Id	name: val	scope: 1	type: int
+                CompoundStmt
+                    Sequence
+                        AssignStmt
+                            Id	name: d	scope: 0	type: int
+                            Id	name: val	scope: 1	type: int
+                        ReturnStmt
+                            Id	name: d	scope: 0	type: int
+        FunctionDefine function name: main, type: int()
+            CompoundStmt
+                Sequence
+                    Sequence
+                        Sequence
+                            Sequence
+                                Sequence
+                                    Sequence
+                                        Sequence
+                                            Sequence
+                                                Sequence
+                                                    Sequence
+                                                        Sequence
+                                                            Sequence
+                                                                Sequence
+                                                                    Sequence
+                                                                        Sequence
+                                                                            Sequence
+                                                                                Sequence
+                                                                                    Sequence
+                                                                                        Sequence
+                                                                                            Sequence
+                                                                                                Sequence
+                                                                                                    Sequence
+                                                                                                        Sequence
+                                                                                                            Sequence
+                                                                                                                Sequence
+                                                                                                                    Sequence
+                                                                                                                        Sequence
+                                                                                                                            Sequence
+                                                                                                                                Sequence
+                                                                                                                                    Sequence
+                                                                                                                                        Sequence
+                                                                                                                                            Sequence
+                                                                                                                                                Sequence
+                                                                                                                                                    Sequence
+                                                                                                                                                        Sequence
+                                                                                                                                                            Sequence
+                                                                                                                                                                Sequence
+                                                                                                                                                                    AssignStmt
+                                                                                                                                                                        Id	name: a	scope: 0	type: int
+                                                                                                                                                                        IntegerLiteral	value: 2	type: int
+                                                                                                                                                                    AssignStmt
+                                                                                                                                                                        Id	name: b	scope: 0	type: int
+                                                                                                                                                                        IntegerLiteral	value: 3	type: int
+                                                                                                                                                                IfStmt
+                                                                                                                                                                    BinaryExpr	op: and
+                                                                                                                                                                        CallExprFunc name: set_a, type: int(), scope: 0
+                                                                                                                                                                            IntegerLiteral	value: 0	type: int
+                                                                                                                                                                        CallExprFunc name: set_b, type: int(), scope: 0
+                                                                                                                                                                            IntegerLiteral	value: 1	type: int
+                                                                                                                                                                    CompoundStmt
+                                                                                                                                                            ExprStmt
+                                                                                                                                                                CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                                                                                    Id	name: a	scope: 0	type: int
+                                                                                                                                                        ExprStmt
+                                                                                                                                                            CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                                                                                IntegerLiteral	value: 32	type: int
+                                                                                                                                                    ExprStmt
+                                                                                                                                                        CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                                                                            Id	name: b	scope: 0	type: int
+                                                                                                                                                ExprStmt
+                                                                                                                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                                                                        IntegerLiteral	value: 32	type: int
+                                                                                                                                            AssignStmt
+                                                                                                                                                Id	name: a	scope: 0	type: int
+                                                                                                                                                IntegerLiteral	value: 2	type: int
+                                                                                                                                        AssignStmt
+                                                                                                                                            Id	name: b	scope: 0	type: int
+                                                                                                                                            IntegerLiteral	value: 3	type: int
+                                                                                                                                    IfStmt
+                                                                                                                                        BinaryExpr	op: and
+                                                                                                                                            CallExprFunc name: set_a, type: int(), scope: 0
+                                                                                                                                                IntegerLiteral	value: 0	type: int
+                                                                                                                                            CallExprFunc name: set_b, type: int(), scope: 0
+                                                                                                                                                IntegerLiteral	value: 1	type: int
+                                                                                                                                        BlankStmt
+                                                                                                                                ExprStmt
+                                                                                                                                    CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                                                        Id	name: a	scope: 0	type: int
+                                                                                                                            ExprStmt
+                                                                                                                                CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                                                    IntegerLiteral	value: 32	type: int
+                                                                                                                        ExprStmt
+                                                                                                                            CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                                                Id	name: b	scope: 0	type: int
+                                                                                                                    ExprStmt
+                                                                                                                        CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                                            IntegerLiteral	value: 10	type: int
+                                                                                                                DeclStmt
+                                                                                                                    Id	name: c	scope: 2	type: const int
+                                                                                                                    IntegerLiteral	value: 1	type: int
+                                                                                                            AssignStmt
+                                                                                                                Id	name: d	scope: 0	type: int
+                                                                                                                IntegerLiteral	value: 2	type: int
+                                                                                                        IfStmt
+                                                                                                            BinaryExpr	op: and
+                                                                                                                BinaryExpr	op: gore
+                                                                                                                    Id	name: c	scope: 2	type: const int
+                                                                                                                    IntegerLiteral	value: 1	type: int
+                                                                                                                CallExprFunc name: set_d, type: int(), scope: 0
+                                                                                                                    IntegerLiteral	value: 3	type: int
+                                                                                                            BlankStmt
+                                                                                                    ExprStmt
+                                                                                                        CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                            Id	name: d	scope: 0	type: int
+                                                                                                ExprStmt
+                                                                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                        IntegerLiteral	value: 32	type: int
+                                                                                            IfStmt
+                                                                                                BinaryExpr	op: or
+                                                                                                    BinaryExpr	op: lore
+                                                                                                        Id	name: c	scope: 2	type: const int
+                                                                                                        IntegerLiteral	value: 1	type: int
+                                                                                                    CallExprFunc name: set_d, type: int(), scope: 0
+                                                                                                        IntegerLiteral	value: 4	type: int
+                                                                                                CompoundStmt
+                                                                                        ExprStmt
+                                                                                            CallExprFunc name: putint, type: void(), scope: 0
+                                                                                                Id	name: d	scope: 0	type: int
+                                                                                    ExprStmt
+                                                                                        CallExprFunc name: putch, type: void(), scope: 0
+                                                                                            IntegerLiteral	value: 10	type: int
+                                                                                IfStmt
+                                                                                    BinaryExpr	op: gore
+                                                                                        IntegerLiteral	value: 16	type: int
+                                                                                        BinaryExpr	op: sub
+                                                                                            IntegerLiteral	value: 3	type: int
+                                                                                            BinaryExpr	op: add
+                                                                                                IntegerLiteral	value: 2	type: int
+                                                                                                IntegerLiteral	value: 1	type: int
+                                                                                    CompoundStmt
+                                                                                        ExprStmt
+                                                                                            CallExprFunc name: putch, type: void(), scope: 0
+                                                                                                IntegerLiteral	value: 65	type: int
+                                                                            IfStmt
+                                                                                BinaryExpr	op: NotEqual
+                                                                                    BinaryExpr	op: sub
+                                                                                        IntegerLiteral	value: 25	type: int
+                                                                                        IntegerLiteral	value: 7	type: int
+                                                                                    BinaryExpr	op: sub
+                                                                                        IntegerLiteral	value: 36	type: int
+                                                                                        BinaryExpr	op: mul
+                                                                                            IntegerLiteral	value: 6	type: int
+                                                                                            IntegerLiteral	value: 3	type: int
+                                                                                ExprStmt
+                                                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                                                        IntegerLiteral	value: 66	type: int
+                                                                        IfStmt
+                                                                            BinaryExpr	op: NotEqual
+                                                                                BinaryExpr	op: less
+                                                                                    IntegerLiteral	value: 1	type: int
+                                                                                    IntegerLiteral	value: 8	type: int
+                                                                                BinaryExpr	op: mod
+                                                                                    IntegerLiteral	value: 7	type: int
+                                                                                    IntegerLiteral	value: 2	type: int
+                                                                            CompoundStmt
+                                                                                ExprStmt
+                                                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                                                        IntegerLiteral	value: 67	type: int
+                                                                    IfStmt
+                                                                        BinaryExpr	op: Equal
+                                                                            BinaryExpr	op: greater
+                                                                                IntegerLiteral	value: 3	type: int
+                                                                                IntegerLiteral	value: 4	type: int
+                                                                            IntegerLiteral	value: 0	type: int
+                                                                        CompoundStmt
+                                                                            ExprStmt
+                                                                                CallExprFunc name: putch, type: void(), scope: 0
+                                                                                    IntegerLiteral	value: 68	type: int
+                                                                IfStmt
+                                                                    BinaryExpr	op: Equal
+                                                                        IntegerLiteral	value: 1	type: int
+                                                                        BinaryExpr	op: lore
+                                                                            IntegerLiteral	value: 102	type: int
+                                                                            IntegerLiteral	value: 63	type: int
+                                                                    ExprStmt
+                                                                        CallExprFunc name: putch, type: void(), scope: 0
+                                                                            IntegerLiteral	value: 69	type: int
+                                                            IfStmt
+                                                                BinaryExpr	op: Equal
+                                                                    BinaryExpr	op: sub
+                                                                        IntegerLiteral	value: 5	type: int
+                                                                        IntegerLiteral	value: 6	type: int
+                                                                    UnaryExpr	op: negative
+                                                                        UnaryExpr	op: non
+                                                                            IntegerLiteral	value: 0	type: int
+                                                                ExprStmt
+                                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                                        IntegerLiteral	value: 70	type: int
+                                                        ExprStmt
+                                                            CallExprFunc name: putch, type: void(), scope: 0
+                                                                IntegerLiteral	value: 10	type: int
+                                                    DeclStmt
+                                                        Id	name: i0	scope: 2	type: int
+                                                        IntegerLiteral	value: 0	type: int
+                                                    DeclStmt
+                                                        Id	name: i1	scope: 2	type: int
+                                                        IntegerLiteral	value: 1	type: int
+                                                    DeclStmt
+                                                        Id	name: i2	scope: 2	type: int
+                                                        IntegerLiteral	value: 2	type: int
+                                                    DeclStmt
+                                                        Id	name: i3	scope: 2	type: int
+                                                        IntegerLiteral	value: 3	type: int
+                                                    DeclStmt
+                                                        Id	name: i4	scope: 2	type: int
+                                                        IntegerLiteral	value: 4	type: int
+                                                WhileStmt
+                                                    BinaryExpr	op: and
+                                                        Id	name: i0	scope: 2	type: int
+                                                        Id	name: i1	scope: 2	type: int
+                                                    ExprStmt
+                                                        CallExprFunc name: putch, type: void(), scope: 0
+                                                            IntegerLiteral	value: 32	type: int
+                                            IfStmt
+                                                BinaryExpr	op: or
+                                                    Id	name: i0	scope: 2	type: int
+                                                    Id	name: i1	scope: 2	type: int
+                                                ExprStmt
+                                                    CallExprFunc name: putch, type: void(), scope: 0
+                                                        IntegerLiteral	value: 67	type: int
+                                        IfStmt
+                                            BinaryExpr	op: or
+                                                BinaryExpr	op: gore
+                                                    Id	name: i0	scope: 2	type: int
+                                                    Id	name: i1	scope: 2	type: int
+                                                BinaryExpr	op: lore
+                                                    Id	name: i1	scope: 2	type: int
+                                                    Id	name: i0	scope: 2	type: int
+                                            ExprStmt
+                                                CallExprFunc name: putch, type: void(), scope: 0
+                                                    IntegerLiteral	value: 72	type: int
+                                    IfStmt
+                                        BinaryExpr	op: and
+                                            BinaryExpr	op: gore
+                                                Id	name: i2	scope: 2	type: int
+                                                Id	name: i1	scope: 2	type: int
+                                            BinaryExpr	op: NotEqual
+                                                Id	name: i4	scope: 2	type: int
+                                                Id	name: i3	scope: 2	type: int
+                                        CompoundStmt
+                                            ExprStmt
+                                                CallExprFunc name: putch, type: void(), scope: 0
+                                                    IntegerLiteral	value: 73	type: int
+                                IfStmt
+                                    BinaryExpr	op: or
+                                        BinaryExpr	op: and
+                                            BinaryExpr	op: Equal
+                                                Id	name: i0	scope: 2	type: int
+                                                UnaryExpr	op: non
+                                                    Id	name: i1	scope: 2	type: int
+                                            BinaryExpr	op: less
+                                                Id	name: i3	scope: 2	type: int
+                                                Id	name: i3	scope: 2	type: int
+                                        BinaryExpr	op: gore
+                                            Id	name: i4	scope: 2	type: int
+                                            Id	name: i4	scope: 2	type: int
+                                    CompoundStmt
+                                        ExprStmt
+                                            CallExprFunc name: putch, type: void(), scope: 0
+                                                IntegerLiteral	value: 74	type: int
+                            IfStmt
+                                BinaryExpr	op: or
+                                    BinaryExpr	op: Equal
+                                        Id	name: i0	scope: 2	type: int
+                                        UnaryExpr	op: non
+                                            Id	name: i1	scope: 2	type: int
+                                    BinaryExpr	op: and
+                                        BinaryExpr	op: less
+                                            Id	name: i3	scope: 2	type: int
+                                            Id	name: i3	scope: 2	type: int
+                                        BinaryExpr	op: gore
+                                            Id	name: i4	scope: 2	type: int
+                                            Id	name: i4	scope: 2	type: int
+                                ExprStmt
+                                    CallExprFunc name: putch, type: void(), scope: 0
+                                        IntegerLiteral	value: 75	type: int
+                        ExprStmt
+                            CallExprFunc name: putch, type: void(), scope: 0
+                                IntegerLiteral	value: 10	type: int
+                    ReturnStmt
+                        IntegerLiteral	value: 0	type: int

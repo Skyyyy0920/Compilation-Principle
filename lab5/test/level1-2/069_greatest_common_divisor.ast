@@ -1,0 +1,62 @@
+program
+    Sequence
+        FunctionDefine function name: fun, type: int()
+            DeclStmt
+                Id	name: m	scope: 1	type: int
+            DeclStmt
+                Id	name: n	scope: 1	type: int
+            CompoundStmt
+                Sequence
+                    Sequence
+                        DeclStmt
+                            Id	name: rem	scope: 2	type: int
+                        WhileStmt
+                            BinaryExpr	op: greater
+                                Id	name: n	scope: 1	type: int
+                                IntegerLiteral	value: 0	type: int
+                            CompoundStmt
+                                Sequence
+                                    Sequence
+                                        AssignStmt
+                                            Id	name: rem	scope: 2	type: int
+                                            BinaryExpr	op: mod
+                                                Id	name: m	scope: 1	type: int
+                                                Id	name: n	scope: 1	type: int
+                                        AssignStmt
+                                            Id	name: m	scope: 1	type: int
+                                            Id	name: n	scope: 1	type: int
+                                    AssignStmt
+                                        Id	name: n	scope: 1	type: int
+                                        Id	name: rem	scope: 2	type: int
+                    ReturnStmt
+                        Id	name: m	scope: 1	type: int
+        FunctionDefine function name: main, type: int()
+            CompoundStmt
+                Sequence
+                    Sequence
+                        Sequence
+                            Sequence
+                                Sequence
+                                    Sequence
+                                        DeclStmt
+                                            Id	name: n	scope: 2	type: int
+                                        DeclStmt
+                                            Id	name: m	scope: 2	type: int
+                                        DeclStmt
+                                            Id	name: num	scope: 2	type: int
+                                    AssignStmt
+                                        Id	name: m	scope: 2	type: int
+                                        CallExprFunc name: getint, type: int(), scope: 0
+                                AssignStmt
+                                    Id	name: n	scope: 2	type: int
+                                    CallExprFunc name: getint, type: int(), scope: 0
+                            AssignStmt
+                                Id	name: num	scope: 2	type: int
+                                CallExprFunc name: fun, type: int(), scope: 0
+                                    Id	name: m	scope: 2	type: int
+                                    Id	name: n	scope: 2	type: int
+                        ExprStmt
+                            CallExprFunc name: putint, type: void(), scope: 0
+                                Id	name: num	scope: 2	type: int
+                    ReturnStmt
+                        IntegerLiteral	value: 0	type: int

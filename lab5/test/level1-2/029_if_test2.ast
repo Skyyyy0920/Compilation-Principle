@@ -1,0 +1,71 @@
+program
+    Sequence
+        FunctionDefine function name: ifElseIf, type: int()
+            CompoundStmt
+                Sequence
+                    Sequence
+                        Sequence
+                            Sequence
+                                Sequence
+                                    DeclStmt
+                                        Id	name: a	scope: 2	type: int
+                                    AssignStmt
+                                        Id	name: a	scope: 2	type: int
+                                        IntegerLiteral	value: 5	type: int
+                                DeclStmt
+                                    Id	name: b	scope: 2	type: int
+                            AssignStmt
+                                Id	name: b	scope: 2	type: int
+                                IntegerLiteral	value: 10	type: int
+                        IfElseStmt
+                            BinaryExpr	op: or
+                                BinaryExpr	op: Equal
+                                    Id	name: a	scope: 2	type: int
+                                    IntegerLiteral	value: 6	type: int
+                                BinaryExpr	op: Equal
+                                    Id	name: b	scope: 2	type: int
+                                    IntegerLiteral	value: 11	type: int
+                            CompoundStmt
+                                ReturnStmt
+                                    Id	name: a	scope: 2	type: int
+                            CompoundStmt
+                                IfElseStmt
+                                    BinaryExpr	op: and
+                                        BinaryExpr	op: Equal
+                                            Id	name: b	scope: 2	type: int
+                                            IntegerLiteral	value: 10	type: int
+                                        BinaryExpr	op: Equal
+                                            Id	name: a	scope: 2	type: int
+                                            IntegerLiteral	value: 1	type: int
+                                    AssignStmt
+                                        Id	name: a	scope: 2	type: int
+                                        IntegerLiteral	value: 25	type: int
+                                    IfElseStmt
+                                        BinaryExpr	op: and
+                                            BinaryExpr	op: Equal
+                                                Id	name: b	scope: 2	type: int
+                                                IntegerLiteral	value: 10	type: int
+                                            BinaryExpr	op: Equal
+                                                Id	name: a	scope: 2	type: int
+                                                UnaryExpr	op: negative
+                                                    IntegerLiteral	value: 5	type: int
+                                        AssignStmt
+                                            Id	name: a	scope: 2	type: int
+                                            BinaryExpr	op: add
+                                                Id	name: a	scope: 2	type: int
+                                                IntegerLiteral	value: 15	type: int
+                                        AssignStmt
+                                            Id	name: a	scope: 2	type: int
+                                            UnaryExpr	op: negative
+                                                UnaryExpr	op: positive
+                                                    Id	name: a	scope: 2	type: int
+                    ReturnStmt
+                        Id	name: a	scope: 2	type: int
+        FunctionDefine function name: main, type: int()
+            CompoundStmt
+                Sequence
+                    ExprStmt
+                        CallExprFunc name: putint, type: void(), scope: 0
+                            CallExprFunc name: ifElseIf, type: int(), scope: 0
+                    ReturnStmt
+                        IntegerLiteral	value: 0	type: int

@@ -1,0 +1,54 @@
+program
+    FunctionDefine function name: main, type: int()
+        CompoundStmt
+            Sequence
+                Sequence
+                    Sequence
+                        Sequence
+                            Sequence
+                                Sequence
+                                    DeclStmt
+                                        Id	name: a	scope: 2	type: int
+                                    DeclStmt
+                                        Id	name: b	scope: 2	type: int
+                                    AssignStmt
+                                        Id	name: a	scope: 2	type: int
+                                        IntegerLiteral	value: 56	type: int
+                                AssignStmt
+                                    Id	name: b	scope: 2	type: int
+                                    IntegerLiteral	value: 4	type: int
+                            AssignStmt
+                                Id	name: a	scope: 2	type: int
+                                BinaryExpr	op: add
+                                    BinaryExpr	op: sub
+                                        Id	name: a	scope: 2	type: int
+                                        UnaryExpr	op: negative
+                                            IntegerLiteral	value: 4	type: int
+                                    UnaryExpr	op: positive
+                                        Id	name: b	scope: 2	type: int
+                        IfElseStmt
+                            UnaryExpr	op: positive
+                                UnaryExpr	op: negative
+                                    UnaryExpr	op: non
+                                        UnaryExpr	op: non
+                                            UnaryExpr	op: non
+                                                Id	name: a	scope: 2	type: int
+                            CompoundStmt
+                                AssignStmt
+                                    Id	name: a	scope: 2	type: int
+                                    UnaryExpr	op: negative
+                                        UnaryExpr	op: negative
+                                            UnaryExpr	op: negative
+                                                IntegerLiteral	value: 1	type: int
+                            CompoundStmt
+                                AssignStmt
+                                    Id	name: a	scope: 2	type: int
+                                    BinaryExpr	op: add
+                                        IntegerLiteral	value: 0	type: int
+                                        UnaryExpr	op: positive
+                                            Id	name: b	scope: 2	type: int
+                    ExprStmt
+                        CallExprFunc name: putint, type: void(), scope: 0
+                            Id	name: a	scope: 2	type: int
+                ReturnStmt
+                    IntegerLiteral	value: 0	type: int

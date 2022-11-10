@@ -1,0 +1,11 @@
+program
+    Sequence
+        DeclStmt
+            Id	name: a	scope: 0	type: const int
+            IntegerLiteral	value: 5	type: int
+        FunctionDefine function name: main, type: int()
+            CompoundStmt
+                ReturnStmt
+                    BinaryExpr	op: mul
+                        Id	name: a	scope: 0	type: const int
+                        IntegerLiteral	value: 5	type: int

@@ -1,0 +1,83 @@
+program
+    Sequence
+        Sequence
+            FunctionDefine function name: enc, type: int()
+                DeclStmt
+                    Id	name: a	scope: 1	type: int
+                CompoundStmt
+                    Sequence
+                        IfElseStmt
+                            BinaryExpr	op: greater
+                                Id	name: a	scope: 1	type: int
+                                IntegerLiteral	value: 25	type: int
+                            AssignStmt
+                                Id	name: a	scope: 1	type: int
+                                BinaryExpr	op: add
+                                    Id	name: a	scope: 1	type: int
+                                    IntegerLiteral	value: 60	type: int
+                            CompoundStmt
+                                AssignStmt
+                                    Id	name: a	scope: 1	type: int
+                                    BinaryExpr	op: sub
+                                        Id	name: a	scope: 1	type: int
+                                        IntegerLiteral	value: 15	type: int
+                        ReturnStmt
+                            Id	name: a	scope: 1	type: int
+            FunctionDefine function name: dec, type: int()
+                DeclStmt
+                    Id	name: a	scope: 1	type: int
+                CompoundStmt
+                    Sequence
+                        IfElseStmt
+                            BinaryExpr	op: greater
+                                Id	name: a	scope: 1	type: int
+                                IntegerLiteral	value: 85	type: int
+                            AssignStmt
+                                Id	name: a	scope: 1	type: int
+                                BinaryExpr	op: sub
+                                    Id	name: a	scope: 1	type: int
+                                    IntegerLiteral	value: 59	type: int
+                            CompoundStmt
+                                AssignStmt
+                                    Id	name: a	scope: 1	type: int
+                                    BinaryExpr	op: add
+                                        Id	name: a	scope: 1	type: int
+                                        IntegerLiteral	value: 14	type: int
+                        ReturnStmt
+                            Id	name: a	scope: 1	type: int
+        FunctionDefine function name: main, type: int()
+            CompoundStmt
+                Sequence
+                    Sequence
+                        Sequence
+                            Sequence
+                                Sequence
+                                    Sequence
+                                        Sequence
+                                            Sequence
+                                                DeclStmt
+                                                    Id	name: a	scope: 2	type: int
+                                                AssignStmt
+                                                    Id	name: a	scope: 2	type: int
+                                                    IntegerLiteral	value: 400	type: int
+                                            DeclStmt
+                                                Id	name: res	scope: 2	type: int
+                                        AssignStmt
+                                            Id	name: res	scope: 2	type: int
+                                            CallExprFunc name: enc, type: int(), scope: 0
+                                                Id	name: a	scope: 2	type: int
+                                    AssignStmt
+                                        Id	name: res	scope: 2	type: int
+                                        CallExprFunc name: dec, type: int(), scope: 0
+                                            Id	name: res	scope: 2	type: int
+                                ExprStmt
+                                    CallExprFunc name: putint, type: void(), scope: 0
+                                        Id	name: res	scope: 2	type: int
+                            AssignStmt
+                                Id	name: res	scope: 2	type: int
+                                IntegerLiteral	value: 10	type: int
+                        ExprStmt
+                            CallExprFunc name: putch, type: void(), scope: 0
+                                Id	name: res	scope: 2	type: int
+                    ReturnStmt
+                        IntegerLiteral	value: 0	type: int
