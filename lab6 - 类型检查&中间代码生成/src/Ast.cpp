@@ -417,6 +417,7 @@ void ReturnStmt::typeCheck(SymbolEntry* curFunc)
 {
     Type *funcType = curFunc->getType();  // 函数的返回类型
     if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
+        retValue->typeCheck();
         Type *retType = retValue->getSymPtr()->getType();  // return语句返回的类型
         if (retType->toStr() != funcType->toStr()) {
             fprintf(stderr, "函数类型为 %s, 但返回了一个 %s 类型的表达式\n", funcType->toStr().c_str(), retType->toStr().c_str());
@@ -501,7 +502,7 @@ void FunctionDef::typeCheck()
 
 void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
 {
-    fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
+    // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
     bool flag = 0;
     ExprNode* tmp = this->param;
     int rCount = 0;  // 函数调用的实参个数
@@ -523,8 +524,8 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
             }*/
             // ---------------------------------------------------------------------------
             ExprNode* fParams = this->param;  // 形参
-            std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();
-            for (auto it : rParams) {
+            // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
+            for (auto it : ((FunctionType*)func->getType())->getParams()) {
                 if (fParams == nullptr) {
                     flag = 0;
                     break;
@@ -549,9 +550,10 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
         func = func->getNext();
     }
     
+    
     if (!flag) {
         fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymPtr()->toStr().c_str());
-        fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
+        // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
     }    
 }
 
