@@ -9,13 +9,15 @@ class Type;
 class SymbolEntry
 {
 private:
-    int kind;
+    
 protected:
     enum {CONSTANT, VARIABLE, TEMPORARY};
-    Type *type;
-
+    Type* type;
+    int kind;
+    SymbolEntry* next;  // 用来解决函数重载问题
+    
 public:
-    SymbolEntry(Type *type, int kind) : type(type), kind(kind) {};
+    SymbolEntry(Type *type, int kind) : type(type), kind(kind) { next = nullptr; };  // 这里有个小知识点，之前一直报 warning:   when initialized here [-Wreorder], 查了一下，原来类在初始化的时候需要按照成员声明的顺序来
     virtual ~SymbolEntry() {};
     bool isConstant() const {return kind == CONSTANT;};
     bool isTemporary() const {return kind == TEMPORARY;};
@@ -23,6 +25,8 @@ public:
     Type* getType() {return type;};
     void setType(Type *type) {this->type = type;};
     virtual std::string toStr() = 0;
+    bool setNext(SymbolEntry* se);
+    SymbolEntry* getNext() { return next; }
 };
 
 
@@ -133,10 +137,10 @@ private:
 public:
     SymbolTable();
     SymbolTable(SymbolTable *prev);
-    void install(std::string name, SymbolEntry* entry);
+    bool install(std::string name, SymbolEntry* entry);
     SymbolEntry* lookup(std::string name);
     SymbolEntry* searchFunc();
-    bool checkRepeat(std::string name);
+    SymbolEntry* checkRepeat(std::string name);
     SymbolTable* getPrev() {return prev;};
     int getLevel() {return level;};
     static int getLabel() {return counter++;};

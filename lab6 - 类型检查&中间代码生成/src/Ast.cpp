@@ -54,7 +54,7 @@ std::vector<Instruction *> Node::merge(std::vector<Instruction *> &list1, std::v
 }
 
 
-//---------------------  中间代码生成  ---------------------//
+//------------------------------------------  中间代码生成  ------------------------------------------//
 
 void Constant::genCode()
 {
@@ -267,7 +267,7 @@ void CallExpr::genCode()
 }
 
 
-//---------------------  类型检查  ---------------------//
+//------------------------------------------  类型检查  ------------------------------------------//
 
 void Ast::typeCheck()
 {
@@ -287,11 +287,14 @@ void BinaryExpr::typeCheck()
 
     Type *type1 = this->expr1->getSymPtr()->getType();
     Type *type2 = this->expr2->getSymPtr()->getType();
-    if (type1->toStr() == "void()") {  // 判断是否有函数返回void但是参与了运算
-        fprintf(stderr, "表达式1为void, 不能进行计算\n");
+    // fprintf(stderr, "binaryExpr\n");
+    // fprintf(stderr, "type1: %s\n", type1->toStr().c_str());
+    // fprintf(stderr, "type2: %s\n", type2->toStr().c_str());
+    if (type1->toStr() == "void") {  // 判断是否有函数返回void但是参与了运算
+        fprintf(stderr, "expr1为 void 类型, 不能参与计算\n");
     }
-    else if (type2->toStr() == "void()") {
-        fprintf(stderr, "表达式2为void, 不能进行计算\n");
+    else if (type2->toStr() == "void") {
+        fprintf(stderr, "expr2为 void 类型, 不能参与计算\n");
     }
 }
 
@@ -339,6 +342,10 @@ void DeclStmt::typeCheck()
     if (identifiers->checkRepeat(name)) {  // 判断是否在同一作用域下重复声明
         fprintf(stderr,"DeclStmt %s 重复声明\n", name.c_str());
     }
+
+    if (expr) {
+        expr->typeCheck();
+    }
 }
 
 void IfStmt::typeCheck()
@@ -346,6 +353,7 @@ void IfStmt::typeCheck()
     // 条件判断表达式，需要为int或者bool，如果是int需要做类型转换
     if (cond->getSymPtr()->getType()->isInt()) {
         cond->getSymPtr()->setType(TypeSystem::boolType);
+        fprintf(stderr, "IfStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
     else if (cond->getSymPtr()->getType()->isBool()) {
         // do nothing
@@ -366,6 +374,7 @@ void IfElseStmt::typeCheck()
 {
     if (cond->getSymPtr()->getType()->isInt()) {
         cond->getSymPtr()->setType(TypeSystem::boolType);
+        fprintf(stderr, "IfElseStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
     else if (cond->getSymPtr()->getType()->isBool()) {
         // do nothing
@@ -385,6 +394,9 @@ void IfElseStmt::typeCheck()
 
 void ReturnStmt::typeCheck()
 {
+    // 与id的检查类似，也放到生成节点的时候去检查吧，在这里检查也有一些不太好解决的问题
+
+    /*
     // return 语句需要检查操作数和函数声明的返回值类型是否匹配
     Type *retType = retValue->getSymPtr()->getType();  // return语句返回的类型
     Type *funcType = identifiers->searchFunc()->getType();  // 函数的返回类型
@@ -398,6 +410,23 @@ void ReturnStmt::typeCheck()
             fprintf(stderr, "函数类型为 %s, 但返回了void\n", retType->toStr().c_str());
         }
     }
+    */
+}
+
+void ReturnStmt::typeCheck(SymbolEntry* curFunc)
+{
+    Type *funcType = curFunc->getType();  // 函数的返回类型
+    if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
+        Type *retType = retValue->getSymPtr()->getType();  // return语句返回的类型
+        if (retType->toStr() != funcType->toStr()) {
+            fprintf(stderr, "函数类型为 %s, 但返回了一个 %s 类型的表达式\n", funcType->toStr().c_str(), retType->toStr().c_str());
+        }
+    }
+    else {  // 如果最后是return ;
+        if (funcType->toStr() != "void") {
+            fprintf(stderr, "函数类型为 %s, 但返回了void\n", funcType->toStr().c_str());
+        }
+    }
 }
 
 void WhileStmt::typeCheck()
@@ -405,6 +434,7 @@ void WhileStmt::typeCheck()
     // 检查条件判断表达式cond
     if (cond->getSymPtr()->getType()->isInt()) {
         cond->getSymPtr()->setType(TypeSystem::boolType);
+        fprintf(stderr, "WhileStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
     else if (cond->getSymPtr()->getType()->isBool()) {
         // do nothing
@@ -440,10 +470,13 @@ void AssignStmt::typeCheck()
 
     Type *type1 = this->lval->getSymPtr()->getType();
     Type *type2 = this->expr->getSymPtr()->getType();
-    if (type1->toStr() == "void()") {  // 判断是否有函数返回void但是参与了运算
+    // fprintf(stderr, "assignStmt %s\n", this->lval->getSymPtr()->toStr().c_str());
+    // fprintf(stderr, "type1: %s\n", type1->toStr().c_str());
+    // fprintf(stderr, "type2: %s\n", type2->toStr().c_str());
+    if (type1->toStr() == "void") {  // 判断是否有函数返回void但是参与了运算
         fprintf(stderr, "表达式1为void, 不能进行赋值\n");
     }
-    else if (type2->toStr() == "void()") {
+    else if (type2->toStr() == "void") {
         fprintf(stderr, "表达式2为void, 不能进行赋值\n");
     }
 }
@@ -460,78 +493,71 @@ void FunctionDef::typeCheck()
     
     this->stmt->typeCheck();  // 检查函数体
 
-    // TODO
     if (identifiers->lookup(name) == nullptr) {  // 检查未定义问题
         fprintf(stderr,"函数 %s 未被定义\n", name.c_str());
         // exit(EXIT_FAILURE);
     }
 }
 
-void CallExpr::typeCheck()
+void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
 {
+    fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
+    bool flag = 0;
+    ExprNode* tmp = this->param;
+    int rCount = 0;  // 函数调用的实参个数
+    while (tmp) {
+        rCount ++;
+        tmp = (ExprNode*)tmp->getNext();
+    }
 
+    SymbolEntry* func = this->getSymPtr();
+    while (func) {
+        int pCount = ((FunctionType*)func->getType())->getParams().size();
+        if (rCount == pCount) {
+            flag = 1;
+            this->type = ((FunctionType*)func->getType())->getReturnType();
+            // ------------------------------- 暂时不知道啥用 -----------------------------
+            /*if (this->type != TypeSystem::voidType) {
+                SymbolEntry* se = new TemporarySymbolEntry(this->type, SymbolTable::getLabel());
+                dst = new Operand(se);
+            }*/
+            // ---------------------------------------------------------------------------
+            ExprNode* fParams = this->param;  // 形参
+            std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();
+            for (auto it : rParams) {
+                if (fParams == nullptr) {
+                    flag = 0;
+                    break;
+                }
+                if (it->getType()->toStr() != fParams->getSymPtr()->getType()->toStr()) {  // 类型不同则要检查一下是不是可以隐式类型转换
+                    if ((it->getType()->isFloat() && fParams->getSymPtr()->getType()->isInt()) || 
+                        (it->getType()->isInt() && fParams->getSymPtr()->getType()->isFloat())) {  // 存在形参到实参的隐式类型转换, 可以, 接着往后一一对应地找
+                            fParams = (ExprNode*)fParams->getNext();
+                        }
+                    else {
+                        flag = 0;
+                        break;
+                    }
+                }
+            }
+
+            if (flag) {
+                this->symbolEntry = func;
+                break;
+            }
+        }
+        func = func->getNext();
+    }
+    
+    if (!flag) {
+        fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymPtr()->toStr().c_str());
+        fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
+    }    
 }
 
-/*
-void Params::typeCheck()
-{
-    // Todo
-   // fprintf(stderr,"para 1\n");
-    if(exp1!=NULL)
-    {
-        exp1->typeCheck();
-    }
-   
-    if(exp2!=NULL)
-    {
-        exp2->typeCheck();
-    }
-   //fprintf(stderr,"para 3\n");
-}
 
-//ok
-void Param::typeCheck()
-{
-    // Todo
-    // fprintf(stderr,"para 2\n");
-     Type *type1=id->getSymPtr()->getType();
-    //首先判断是否为整型
-    if(type1->isInt()!=1)
-    {
-        fprintf(stderr,"参数定义中 type %s 不匹配 in line xx",
-        type1->toStr().c_str());
-        exit(EXIT_FAILURE);
-        return;
-    }
-   
-    //然后判断是否重定义
-    if(identifiers->search_inthis(name)!=nullptr)
-    {
-        fprintf(stderr,"参数%s 重定义",name.c_str());
-        exit(EXIT_FAILURE);
-        return;
-    }
-    if(expr1!=NULL)
-    {    
-        expr1->typeCheck();
-        Type *type1 = expr1->getSymPtr()->getType();
-        symbolEntry->setType(type1);   
-    }
-     
-}
 
-void Paramlist::typeCheck()
-{
-    // Todo
-    exp1->typeCheck();
-    if(exp2!=NULL)
-    {
-        exp2->typeCheck();
-    }
-}
-*/
-
-//---------------------  输出，同lab5  ---------------------//
+//------------------------------------------  输出，同lab5  ------------------------------------------//
 
 void Ast::output()
 {

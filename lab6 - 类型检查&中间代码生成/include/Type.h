@@ -22,6 +22,7 @@ public:
     bool isBool() const {return kind == BOOL;};
 
     virtual Type* getReturnType() = 0;  // 其实这个函数只在funcType中使用，但是由于C++的继承问题，不设置成虚基类没法用
+    // 后续: 太菜了，不需要再写什么虚函数，强制类型转换就行了！！！不过这里先不改了，做个警示
 };
 
 class IntType : public Type
@@ -77,8 +78,8 @@ private:
 public:
     FunctionType(Type* returnType, std::vector<SymbolEntry*> params) : Type(Type::FUNC), returnType(returnType), params(params){}
     std::string toStr();
-    // Type(Type::FUNC), returnType(returnType), paramsType(paramsType){};
     Type* getReturnType() { return returnType; };
+    std::vector<SymbolEntry*> getParams() { return params; }
 };
 
 class PointerType : public Type

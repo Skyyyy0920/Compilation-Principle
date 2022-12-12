@@ -59,22 +59,27 @@ int main(int argc, char *argv[])
     }
 
     yyparse();  // 构建语法树
-    fprintf(stderr, "语法树构建完成\n");
+    fprintf(stderr, "\n语法树构建完成\n");
+    fprintf(stderr, "==========================================================\n\n");
 
     if(dump_ast) {
         ast.output();  // 打印语法树
-        fprintf(stderr, "语法树打印完成\n");
+        fprintf(stderr, "\n语法树打印完成\n");
+        fprintf(stderr, "==========================================================\n\n");
     }
 
     ast.typeCheck();  // 类型检查
-    fprintf(stderr, "类型检查完成\n");
+    fprintf(stderr, "\n类型检查完成\n");
+    fprintf(stderr, "==========================================================\n\n");
 
     ast.genCode(&unit);  // 中间代码生成
-    fprintf(stderr, "中间代码生成完成\n");
+    fprintf(stderr, "\n中间代码生成完成\n");
+    fprintf(stderr, "==========================================================\n\n");
 
     if(dump_ir){
         unit.output();  // 打印中间代码
-        fprintf(stderr, "中间代码输出完成\n");
+        fprintf(stderr, "\n中间代码输出完成\n");
+        fprintf(stderr, "==========================================================\n\n");
     }
         
     return 0;

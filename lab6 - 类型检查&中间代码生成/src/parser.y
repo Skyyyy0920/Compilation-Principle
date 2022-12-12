@@ -9,6 +9,7 @@
     extern Ast ast;
 
     Type* declType;
+    SymbolEntry* curFunc;
     stack<string> varlist;
 
     int yylex();
@@ -146,10 +147,14 @@ ContinueStmt
     ;
 ReturnStmt
     : RETURN SEMICOLON {
-        $$ = new ReturnStmt();
+        ReturnStmt* ret = new ReturnStmt();
+        ret->typeCheck(curFunc);
+        $$ = ret;
     }
     | RETURN Exp SEMICOLON{
-        $$ = new ReturnStmt($2);
+        ReturnStmt* ret = new ReturnStmt($2);
+        ret->typeCheck(curFunc);
+        $$ = ret;
     }
     ;
 Exp
@@ -194,6 +199,7 @@ UnaryExp
     | ID LPAREN FuncRParams RPAREN {
         SymbolEntry *se;
         se = identifiers->lookup($1);
+        // fprintf(stderr, "se: %s\n", se->getType()->toStr().c_str());
         if (se == nullptr)
             fprintf(stderr, "function \"%s\" is undefined\n", (char*)$1);
         else{
@@ -324,17 +330,16 @@ VarDefList
     | VarDef {$$ = $1;}
     ;
 VarDef
-    : ID {
+    : 
+    ID {
         SymbolEntry* se;
         se = new IdentifierSymbolEntry(declType, $1, identifiers->getLevel());
-        if (identifiers->checkRepeat(se->toStr())) {  // 判断是否在同一作用域下重复定义
-            fprintf(stderr,"Id %s 重复定义\n", se->toStr().c_str());
-        }
         identifiers->install($1, se);
         $$ = new DeclStmt(new Id(se));
         delete []$1;
     }
-    | ID ASSIGN InitVal {
+    | 
+    ID ASSIGN InitVal {
         SymbolEntry* se;
         se = new IdentifierSymbolEntry(declType, $1, identifiers->getLevel());
         identifiers->install($1, se);
@@ -423,6 +428,8 @@ FuncDef  // 函数定义
         funcType = new FunctionType($1, params);
         SymbolEntry* se = new IdentifierSymbolEntry(funcType, $2, identifiers->getPrev()->getLevel());
         identifiers->getPrev()->install($2, se);  // 将函数ID和函数类型装入符号表，这个是该函数上一级的符号表
+
+        curFunc = se;  // 使用一个全局变量来存最近的一个函数的ID，用于return的类型检查
     }
     BlockStmt {
         SymbolEntry* se;
@@ -441,10 +448,12 @@ FuncFParams  // 函数形参表
         $$ = $1;
         $$->setNext($3);
     }
-    | FuncFParam {
+    | 
+    FuncFParam {
         $$ = $1;
     }
-    | %empty{  // 无参数的情况
+    | 
+    %empty{  // 无参数的情况
         $$ = nullptr;
     }
     ;
@@ -454,9 +463,7 @@ FuncFParam  // 函数形参
         SymbolEntry* se;
         // se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel(), paramNo++);
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
-        identifiers->install($2, se);
-        // ((IdentifierSymbolEntry*)se)->setLabel();
-        // ((IdentifierSymbolEntry*)se)->setAddr(new Operand(se));
+        identifiers->install($2, se);  // 形参存入当前函数的符号表
         $$ = new DeclStmt(new Id(se));
         delete []$2;
     }
@@ -464,11 +471,13 @@ FuncFParam  // 函数形参
 FuncRParams  // 函数实参表
     :
     FuncRParam {$$ = $1;}
-    | FuncRParams COMMA FuncRParam {
+    | 
+    FuncRParams COMMA FuncRParam {
         $$ = $1;
         $$->setNext($3);
     }
-    | %empty{
+    | 
+    %empty{
         $$ = nullptr;
     }
     ;

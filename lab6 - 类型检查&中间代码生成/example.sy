@@ -1,28 +1,27 @@
-void f(){
-
+/* legal function overloading */
+int func(int a)
+{
+	return a;
+}
+int func(int a, int b, int c)
+{
+	return a + b + c;
 }
 
-int ss(){
-    float s;
-    return s;
+/* illegal function overloading */
+int error_func(int a)
+{
+	return a + 1;
 }
-
-void ff(){
-    
+int error_func(int a)
+{
+	return a;
 }
 
 int main()
 {
-    int a;
-    int b;
-    int min;
-    // c = 0;
-    a = 1 + 2 + 3;
-    b = 2 + 3 + 4;
-    a = f();
-    if (a < b)
-        min = a;
-    else
-        min = b;
-    return min;
+	int ret = 0;
+	ret = func(1) + func(1,2,3);
+	ret = error_func(1) + error_func(1);
+	return ret;
 }

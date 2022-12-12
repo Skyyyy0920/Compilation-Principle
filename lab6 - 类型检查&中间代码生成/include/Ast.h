@@ -44,8 +44,9 @@ class ExprNode : public Node
 protected:
     SymbolEntry *symbolEntry;
     Operand *dst;   // The result of the subtree is stored into dst.
+    Type* type;
 public:
-    ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){};
+    ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){ dst = nullptr; type = nullptr; };
     Operand* getOperand() {return dst;};
     SymbolEntry* getSymPtr() {return symbolEntry;};
 };
@@ -229,6 +230,7 @@ public:
     ReturnStmt(ExprNode *retValue) : retValue(retValue) {};
     void output(int level);
     void typeCheck();
+    void typeCheck(SymbolEntry* curFunc);
     void genCode();
     ExprNode* getRetValue() { return retValue; }
 };
@@ -258,11 +260,12 @@ public:
     void genCode();
 };
 
-class CallExpr : public ExprNode {
+class CallExpr : public ExprNode {  // 函数调用
 private:
+    // 继承父类的symbolEntry, 记录的是对应的声明函数的ID, 但不一定就是这次函数调用对应的函数, 因为存在函数重载问题, 真正指向对应的函数还需要在typecheck中调整指针的指向
     ExprNode *param; // 目前还没设计好相关的形参表等内容
 public:
-    CallExpr(SymbolEntry* se, ExprNode* param = nullptr) : ExprNode(se){this->param = param;};
+    CallExpr(SymbolEntry* se, ExprNode* param = nullptr) : ExprNode(se) { this->param = param; /*typeCheck();*/ };
     void output(int level);
     void typeCheck();
     void genCode();
