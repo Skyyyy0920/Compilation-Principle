@@ -1,12 +1,10 @@
-/* Missing return stmt */
+/* function undefinition */
 
-int func(int a, int b)
+int func(int a, int b, int c)
 {
-	int sum = a + b;
+	return a + b + c;
 }
-
 int main()
 {
-	func(1,2);
-	return 0;
+	return func(1);
 }

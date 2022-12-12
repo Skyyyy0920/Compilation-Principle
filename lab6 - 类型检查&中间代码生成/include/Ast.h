@@ -96,8 +96,21 @@ public:
     void genCode();
 };
 
-class StmtNode : public Node
-{};
+class StmtNode : public Node {
+private:
+    int kind;
+    bool haveRetStmt;
+protected:
+    enum { IF, IFELSE, WHILE, COMPOUND, RETURN };
+
+public:
+    StmtNode(int kind = -1) : kind(kind){ this->haveRetStmt = false; };
+    // StmtNode(int kind, bool haveReturn) : kind(kind), haveReturn(haveReturn) {};
+    bool isIf() const { return kind == IF; };
+    void setHaveRetStmt(bool haveReturn) { this->haveRetStmt = haveReturn; };
+    bool getHaveRetStmt() { return this->haveRetStmt; };
+    // virtual bool typeCheck(Type* retType = nullptr) = 0;
+};
 
 class CompoundStmt : public StmtNode
 {
@@ -105,7 +118,7 @@ private:
     StmtNode *stmt;
 public:
     CompoundStmt() { stmt = nullptr; };
-    CompoundStmt(StmtNode *stmt) : stmt(stmt) {};
+    CompoundStmt(StmtNode *stmt) : stmt(stmt) { if(stmt->getHaveRetStmt())this->setHaveRetStmt(true); };
     void output(int level);
     void typeCheck();
     void genCode();
@@ -116,7 +129,7 @@ class SeqNode : public StmtNode  // 多个stmt用来分叉
 private:
     StmtNode *stmt1, *stmt2;
 public:
-    SeqNode(StmtNode *stmt1, StmtNode *stmt2) : stmt1(stmt1), stmt2(stmt2){};
+    SeqNode(StmtNode *stmt1, StmtNode *stmt2) : stmt1(stmt1), stmt2(stmt2){ if(stmt1->getHaveRetStmt() || stmt2->getHaveRetStmt()) this->setHaveRetStmt(true); /*这句很重要, 看着语法分析器生成树一步一步查出来的bug!!!*/ };
     void output(int level);
     void typeCheck();  // 检验左右子树即可，但是这个函数很重要
     void genCode();

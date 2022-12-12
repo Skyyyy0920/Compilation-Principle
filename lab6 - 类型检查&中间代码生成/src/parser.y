@@ -56,23 +56,25 @@ Program
     }
     ;
 Stmts
-    : Stmt {$$=$1;}
-    | Stmts Stmt{
+    : 
+    Stmt { $$ = $1; }
+    | 
+    Stmts Stmt{
         $$ = new SeqNode($1, $2);
     }
     ;
 Stmt
-    : AssignStmt {$$ = $1;}
-    | ExprStmt {$$ = $1;}
-    | BlockStmt {$$ = $1;}
-    | IfStmt {$$ = $1;}
-    | BreakStmt {$$ = $1;}
-    | ContinueStmt {$$ = $1;}
-    | WhileStmt {$$ = $1;}
-    | ReturnStmt {$$ = $1;}
-    | DeclStmt {$$ = $1;}
-    | FuncDef {$$ = $1;}
-    | BlankStmt {$$ = $1;}
+    : AssignStmt { $$ = $1; }
+    | ExprStmt { $$ = $1; }
+    | BlockStmt { $$ = $1; }
+    | IfStmt { $$ = $1; }
+    | BreakStmt { $$ = $1; }
+    | ContinueStmt { $$ = $1; }
+    | WhileStmt { $$ = $1; }
+    | ReturnStmt { $$ = $1; }
+    | DeclStmt { $$ = $1; }
+    | FuncDef { $$ = $1; }
+    | BlankStmt { $$ = $1; }
     ;
 LVal
     : ID {
@@ -119,6 +121,7 @@ BlockStmt
     }
     |
     LBRACE RBRACE {
+        $$->setHaveRetStmt(false);
         $$ = new CompoundStmt();
     }
     ;
@@ -149,11 +152,13 @@ ReturnStmt
     : RETURN SEMICOLON {
         ReturnStmt* ret = new ReturnStmt();
         ret->typeCheck(curFunc);
+        ret->setHaveRetStmt(true);
         $$ = ret;
     }
     | RETURN Exp SEMICOLON{
         ReturnStmt* ret = new ReturnStmt($2);
         ret->typeCheck(curFunc);
+        ret->setHaveRetStmt(true);
         $$ = ret;
     }
     ;

@@ -486,17 +486,19 @@ void FunctionDef::typeCheck()
 {
     std::string name = this->se->toStr();
     if (se->getType()->isFunc() != 1) {  // 检查函数返回类型
-        fprintf(stderr, "函数 %s 返回类型不支持\n", name.c_str());
+        fprintf(stderr, "函数 %s 返回类型错误\n", name.c_str());
         // exit(EXIT_FAILURE);
     }
 
-    if (this->decl != NULL) this->decl->typeCheck();  // 检查函数实参
+    if (this->decl != NULL) this->decl->typeCheck();  // 检查函数形参
     
     this->stmt->typeCheck();  // 检查函数体
+    if (!this->stmt->getHaveRetStmt() && se->getType()->toStr() != "void") {
+        fprintf(stderr, "函数 %s 缺少 return 语句\n", name.c_str());
+    } 
 
     if (identifiers->lookup(name) == nullptr) {  // 检查未定义问题
         fprintf(stderr,"函数 %s 未被定义\n", name.c_str());
-        // exit(EXIT_FAILURE);
     }
 }
 

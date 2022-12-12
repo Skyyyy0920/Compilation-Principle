@@ -1,0 +1,8 @@
+function "func" is undefined
+
+语法树构建完成
+==========================================================
+
+IfElseStmt条件判断表达式类型为int, 隐式类型转换为bool
+timeout: the monitored command dumped core
+Segmentation fault
