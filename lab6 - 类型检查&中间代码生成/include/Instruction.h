@@ -134,13 +134,13 @@ protected:
 // 补充call指令
 class CallInstruction : public Instruction 
 {
+protected:
+    Operand* dst; // call指令操作码
+    SymbolEntry* func; // 函数名符号表项，可添加
 public:
     CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb = nullptr);
     ~CallInstruction();
     void output() const;
-protected:
-    Operand* dst; // call指令操作码
-    SymbolEntry* func; // 函数名符号表项，可添加
 };
 
 // return指令

@@ -98,7 +98,8 @@ class TypeSystem
 private:
     static IntType commonInt;
     static FloatType commonFloat;
-    static BoolType commonBool;
+    // static BoolType commonBool;
+    static IntType commonBool;
     static VoidType commonVoid;
     static IntType commonConstInt;
     static FloatType commonConstFloat;

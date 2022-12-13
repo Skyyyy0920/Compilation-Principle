@@ -5,6 +5,8 @@
 #include <map>
 
 class Type;
+class Operand;
+class Function;
 
 class SymbolEntry
 {
@@ -99,7 +101,7 @@ public:
     Operand* getAddr() {return addr;};
     bool isGlobal() const { return scope == GLOBAL; };
     bool isParam() const { return scope == PARAM; };
-    bool isLocal() const { return scope >= LOCAL && scope < GLOBAL; }; // ??需要添加小于吗
+    bool isLocal() const { return scope == LOCAL && scope > GLOBAL; }; // ??需要添加小于吗
 };
 
 

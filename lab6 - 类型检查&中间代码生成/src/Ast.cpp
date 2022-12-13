@@ -5,6 +5,7 @@
 #include "IRBuilder.h"
 #include <string>
 #include "Type.h"
+extern Unit unit;
 
 extern FILE *yyout;
 int Node::counter = 0;
@@ -79,6 +80,66 @@ void Ast::genCode(Unit *unit)
     root->genCode();
 }
 
+void FunctionDef::genCode() {
+    Unit* unit = builder->getUnit();
+    Function* func = new Function(unit, se);
+    BasicBlock* entry = func->getEntry();
+    // set the insert point to the entry basicblock of this function.
+
+    builder->setInsertBB(entry);
+    if (decl)
+        decl->genCode();
+    if (stmt)
+        stmt->genCode();
+
+    // 生成控制流图
+    for(auto block = func->begin(); block != func->end(); block++){
+        //获取该块的最后一条指令
+        Instruction* i = (*block)->begin();
+        Instruction* last = (*block)->rbegin();
+        //从块中删除条件型语句
+        while (i != last){
+            if (i->isCond() || i->isUncond()){
+                (*block)->remove(i);
+            }
+            i = i->getNext();
+        }
+        
+        if (last->isCond()){
+            BasicBlock *truebranch, *falsebranch;
+            truebranch = dynamic_cast<CondBrInstruction*>(last)->getTrueBranch();
+            falsebranch = dynamic_cast<CondBrInstruction*>(last)->getFalseBranch();
+            
+            (*block)->addSucc(truebranch);
+            (*block)->addSucc(falsebranch);
+            truebranch->addPred(*block);
+            falsebranch->addPred(*block);
+        } 
+        else if (last->isUncond()){
+            BasicBlock* dst = dynamic_cast<UncondBrInstruction*>(last)->getBranch();
+            (*block)->addSucc(dst);
+            // 插入return
+            dst->addPred(*block);
+            if (dst->empty()){
+                if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::intType){
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
+                }
+                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::floatType) {
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), dst);
+                }
+                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType){
+                    new RetInstruction(nullptr, dst);
+                }
+            }
+        }
+        //没有显示返回或者跳转的语句 插入空返回
+        else if ((!last->isRet()) && ((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType) {
+                new RetInstruction(nullptr, *block);
+        } 
+    }
+}
+
+/*
 void FunctionDef::genCode()
 {
     Unit *unit = builder->getUnit();
@@ -91,24 +152,18 @@ void FunctionDef::genCode()
     decl->genCode();
     stmt->genCode();
 
-    /**
-     * Construct control flow graph. You need do set successors and predecessors for each basic block.
-     * Todo
-    */
     // 这里属于是构造控制流图，不知道注释掉能不能过
     for (auto block = func->begin(); block != func->end(); block++){
         // 获取第一条指令和最后一条指令
         Instruction* first_inst = (*block)->begin();
         Instruction* last_inst = (*block)->rbegin();
         // 删除基本块中的条件跳转指令，应该就是基本块的最后一条指令，但是感觉可以不删??
-        /*
         while (first_inst != last_inst) {
             if (first_inst->isCond() || first_inst->isUncond()) {
                 (*block)->remove(first_inst);
             }
             first_inst = first_inst->getNext();
         }
-        */
 
         // 插入true branch和false branch
         if (last_inst->isCond()) {
@@ -131,28 +186,28 @@ void FunctionDef::genCode()
                 // 获取函数的返回值类型构建最后一个exit基本块
                 if (dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::intType){
                     Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(func);
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), temp_block);
-                    func->insertBlock(temp_block);
-                    func->setExit(temp_block); // 设置基本块??
-                    // new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), to);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); // 设置基本块??
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), to);
                 }
                 else if(dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::floatType){
                     Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(func);
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), temp_block);
-                    func->insertBlock(temp_block);
-                    func->setExit(temp_block); // 设置基本块??
-                    // new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), to);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); // 设置基本块??
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), to);
                 }
                 // void类型
                 else{
                     Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(func);
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
                     new RetInstruction(nullptr, temp_block);
-                    func->insertBlock(temp_block);
-                    func->setExit(temp_block); 
-                    // new RetInstruction(nullptr, to);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); 
+                    new RetInstruction(nullptr, to);
                 }
             }
         }
@@ -160,16 +215,16 @@ void FunctionDef::genCode()
         else if (!last_inst->isRet()) {
             if ((dynamic_cast<FunctionType*>(se->getType())->getReturnType()) == TypeSystem::voidType){
                 Function *cur_func = (*block)->getParent();
-                BasicBlock *temp_block = new BasicBlock(func);
+                BasicBlock *temp_block = new BasicBlock(cur_func);
                 new RetInstruction(nullptr, temp_block);
-                func->insertBlock(temp_block);
-                func->setExit(temp_block);
-                // new RetInstruction(nullptr, *block);
+                cur_func->insertBlock(temp_block);
+                cur_func->setExit(temp_block);
+                new RetInstruction(nullptr, *block);
             }
         }
     }
-   
 }
+*/
 
 // 待测试
 void UnaryExpr::genCode()
@@ -297,7 +352,7 @@ void BinaryExpr::genCode()
         Operand *src2 = expr2->getOperand();
         checkbool(src1, bb);
         checkbool(src2, bb);
-        int opcode;
+        int opcode = -1;
         // 确定操作码
         switch(opcode)
         {
@@ -324,7 +379,6 @@ void BinaryExpr::genCode()
         }
         new CmpInstruction(opcode, dst, src1, src2, bb);
         // 这块儿的逻辑怪怪的
-        /*
         BasicBlock *truebb, *falsebb, *tempbb;
         //临时假块
         truebb = new BasicBlock(func);
@@ -333,14 +387,15 @@ void BinaryExpr::genCode()
 
         true_list.push_back(new CondBrInstruction(truebb, tempbb, dst, bb));
         false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
-        */
-
+        
         // 正确错误列表合并？？问问
+        /*
         true_list = merge(expr1->trueList(), expr2->trueList());
         false_list = merge(expr1->falseList(), expr2->falseList());
         Instruction* temp = new CondBrInstruction(nullptr,nullptr,dst,bb);
         this->trueList().push_back(temp);
         this->falseList().push_back(temp);
+        */
         
     }
     else if(op >= ADD && op <= SUB)
@@ -384,7 +439,7 @@ void Id::genCode()
 
 void IfStmt::genCode()
 {
-    Function *func;
+    Function* func;
     BasicBlock *then_bb, *end_bb;
 
     func = builder->getInsertBB()->getParent();
@@ -392,6 +447,7 @@ void IfStmt::genCode()
     end_bb = new BasicBlock(func);
 
     cond->genCode();
+
     backPatch(cond->trueList(), then_bb);
     backPatch(cond->falseList(), end_bb);
 
@@ -519,22 +575,21 @@ void DeclStmt::genCode()
     IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(id->getSymPtr());
     // 如果这个是全局变量就直接插入到编译单元unit里处理
     if(se->isGlobal()){
-        Operand *addr = nullptr;
-        SymbolEntry *addr_se = nullptr;
+        Operand* addr;
+        SymbolEntry* addr_se;
         addr_se = new IdentifierSymbolEntry(*se);
         addr_se->setType(new PointerType(se->getType()));
         addr = new Operand(addr_se);
         se->setAddr(addr);
         unit.insertGlobal(se);
-        mUnit.insertGlobal(se);
     }
-    else if(se->isLocal()){
-        Function *func = builder->getInsertBB()->getParent();
-        BasicBlock *entry = func->getEntry();
-        Instruction *alloca;
-        Operand *addr;
-        SymbolEntry *addr_se;
-        Type *type;
+    else if(se->isLocal() || se->isParam()){
+        Function* func = builder->getInsertBB()->getParent();
+        BasicBlock* entry = func->getEntry();
+        Instruction* alloca;
+        Operand* addr;
+        SymbolEntry* addr_se;
+        Type* type;
 
         type = new PointerType(se->getType());
         // 用Identifier应该也行吧
@@ -675,6 +730,9 @@ void BlankStmt::typeCheck()
 
 void DeclStmt::typeCheck()
 {
+    // 不在这里做typecheck, 统一在install中实现id的typecheck
+
+    /*
     std::string name = this->getId()->getSymPtr()->toStr();
     if (identifiers->checkRepeat(name)) {  // 判断是否在同一作用域下重复声明
         fprintf(stderr,"DeclStmt %s 重复声明\n", name.c_str());
@@ -683,6 +741,7 @@ void DeclStmt::typeCheck()
     if (expr) {
         expr->typeCheck();
     }
+    */
 }
 
 void IfStmt::typeCheck()
@@ -754,6 +813,7 @@ void ReturnStmt::typeCheck(SymbolEntry* curFunc)
 {
     Type *funcType = curFunc->getType();  // 函数的返回类型
     if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
+        retValue->typeCheck();
         Type *retType = retValue->getSymPtr()->getType();  // return语句返回的类型
         if (retType->toStr() != funcType->toStr()) {
             fprintf(stderr, "函数类型为 %s, 但返回了一个 %s 类型的表达式\n", funcType->toStr().c_str(), retType->toStr().c_str());
@@ -831,7 +891,7 @@ void FunctionDef::typeCheck()
     this->stmt->typeCheck();  // 检查函数体
     if (!this->stmt->getHaveRetStmt() && se->getType()->toStr() != "void") {
         fprintf(stderr, "函数 %s 缺少 return 语句\n", name.c_str());
-    }
+    } 
 
     if (identifiers->lookup(name) == nullptr) {  // 检查未定义问题
         fprintf(stderr,"函数 %s 未被定义\n", name.c_str());
@@ -840,7 +900,7 @@ void FunctionDef::typeCheck()
 
 void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
 {
-    fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
+    // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
     bool flag = 0;
     ExprNode* tmp = this->param;
     int rCount = 0;  // 函数调用的实参个数
@@ -862,8 +922,8 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
             }*/
             // ---------------------------------------------------------------------------
             ExprNode* fParams = this->param;  // 形参
-            std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();
-            for (auto it : rParams) {
+            // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
+            for (auto it : ((FunctionType*)func->getType())->getParams()) {
                 if (fParams == nullptr) {
                     flag = 0;
                     break;
@@ -888,9 +948,10 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
         func = func->getNext();
     }
     
+    
     if (!flag) {
         fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymPtr()->toStr().c_str());
-        fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
+        // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
     }    
 }
 
@@ -1118,8 +1179,7 @@ void FunctionDef::output(int level)
     std::string name, type;
     name = se->toStr();
     type = se->getType()->toStr();
-    fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ',
-            name.c_str(), type.c_str());
+    fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', name.c_str(), type.c_str());
     if (decl)
     {
         decl->output(level + 4);

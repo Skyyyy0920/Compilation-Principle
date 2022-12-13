@@ -391,3 +391,38 @@ void StoreInstruction::output() const
 
     fprintf(yyout, "  store %s %s, %s %s, align 4\n", src_type.c_str(), src.c_str(), dst_type.c_str(), dst.c_str());
 }
+
+// 补充CallInstruction
+CallInstruction::CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb) : Instruction(CALL, insert_bb), dst(dst), func(func){
+    operands.push_back(dst);
+    dst->setDef(this);
+    for (auto param : params) {
+        operands.push_back(param);
+        param->addUse(this);
+    }
+}
+
+CallInstruction::~CallInstruction(){
+    operands[0]->setDef(nullptr);
+    if (operands[0]->usersNum() == 0)
+        delete operands[0];
+    for (long unsigned int i = 1; i < operands.size(); i++)
+        operands[i]->removeUse(this);
+}
+
+void CallInstruction::output() const {
+    if (operands[0]){
+        fprintf(yyout, "%s = ", operands[0]->toStr().c_str());
+    }
+    FunctionType* type = (FunctionType*)(func->getType());
+    fprintf(yyout, "  call %s %s(", type->getReturnType()->toStr().c_str(), func->toStr().c_str());
+    
+    // 输出函数参数，输出operand vector中的参数
+    for (long unsigned int i = 1; i < operands.size(); i++) {
+        if (i != 1){
+            fprintf(yyout, ", ");
+        }
+        fprintf(yyout, "%s %s", operands[i]->getType()->toStr().c_str(), operands[i]->toStr().c_str());
+    }
+    fprintf(yyout, ")\n");
+}

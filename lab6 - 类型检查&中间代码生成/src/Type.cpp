@@ -1,12 +1,21 @@
 #include "Type.h"
 #include <sstream>
 
+/*
 IntType TypeSystem::commonInt = IntType(4);  // 这里传入的是byte为单位，区别于框架代码中的bit
 FloatType TypeSystem::commonFloat = FloatType(4);
 BoolType TypeSystem::commonBool = BoolType(1);
 VoidType TypeSystem::commonVoid = VoidType();
 IntType TypeSystem::commonConstInt = IntType(4, true);
 FloatType TypeSystem::commonConstFloat = FloatType(4, true);
+BoolType TypeSystem::commonConstBool = BoolType(1, true);
+*/
+IntType TypeSystem::commonConstInt = IntType(32, true);
+IntType TypeSystem::commonInt = IntType(32);
+IntType TypeSystem::commonBool = IntType(1); // ??
+VoidType TypeSystem::commonVoid = VoidType();
+FloatType TypeSystem::commonFloat = FloatType(32);
+FloatType TypeSystem::commonConstFloat = FloatType(32, true);
 BoolType TypeSystem::commonConstBool = BoolType(1, true);
 
 Type* TypeSystem::intType = &commonInt;
@@ -20,22 +29,23 @@ Type* TypeSystem::constBoolType = &commonConstBool;
 // 这要改一下改成输出的是i32，tostr函数打印中间代码要为i32
 std::string IntType::toStr()
 {
-    if (type_constant) {
-        return "const int";
-    }
-    else {
-        return "int";
-    }
+    std::ostringstream buffer;
+    if (type_constant)
+        buffer << "i";
+    else
+        buffer << "i";
+    buffer << size;
+    return buffer.str();
 }
 
 std::string FloatType::toStr()
 {
-    if (type_constant) {
-        return "const float";
-    }
-    else {
-        return "float";
-    }
+    return "float";
+}
+
+std::string VoidType::toStr()
+{
+    return "void";
 }
 
 std::string BoolType::toStr()
@@ -48,21 +58,16 @@ std::string BoolType::toStr()
     }
 }
 
-std::string VoidType::toStr()
-{
-    return "void";
-}
-
 std::string FunctionType::toStr()
 {
     std::ostringstream buffer;
-    buffer << returnType->toStr() << "()";
+    buffer << returnType->toStr(); // << "()";
     return buffer.str();
 }
 
 std::string PointerType::toStr()
 {
     std::ostringstream buffer;
-    buffer << valueType->toStr() << "*";
+    buffer << valueType->toStr(); // << "*";
     return buffer.str();
 }

@@ -157,7 +157,7 @@ class DeclStmt : public StmtNode  // 变量、常量声明
 {
 private:
     Id *id;
-    ExprNode* expr; // 右侧的表达式
+    ExprNode* expr;  // 右侧的表达式
 public:
     DeclStmt(Id *id, ExprNode* expr = nullptr);
     void output(int level);
@@ -280,7 +280,7 @@ public:
 class CallExpr : public ExprNode {  // 函数调用
 private:
     // 继承父类的symbolEntry, 记录的是对应的声明函数的ID, 但不一定就是这次函数调用对应的函数, 因为存在函数重载问题, 真正指向对应的函数还需要在typecheck中调整指针的指向
-    ExprNode *param; // 目前还没设计好相关的形参表等内容
+    ExprNode *param;
 public:
     CallExpr(SymbolEntry* se, ExprNode* param = nullptr) : ExprNode(se) { this->param = param; /*typeCheck();*/ };
     void output(int level);
