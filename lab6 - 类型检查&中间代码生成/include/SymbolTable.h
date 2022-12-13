@@ -83,6 +83,7 @@ private:
     bool constant;  // 判断是否为常量的标志位
     int ivalue;  // 如果ID的定义为int则在此变量中存储
     float fvalue;
+    Operand *addr;  // The address of the identifier.
 public:
     IdentifierSymbolEntry(Type *type, std::string name, int scope);
     virtual ~IdentifierSymbolEntry() {};
@@ -94,6 +95,11 @@ public:
     int getScope() const { return scope; };
     void setConst() { constant = true; };
     bool getConst() const { return constant; };
+    void setAddr(Operand *addr) {this->addr = addr;};
+    Operand* getAddr() {return addr;};
+    bool isGlobal() const { return scope == GLOBAL; };
+    bool isParam() const { return scope == PARAM; };
+    bool isLocal() const { return scope >= LOCAL && scope < GLOBAL; }; // ??需要添加小于吗
 };
 
 

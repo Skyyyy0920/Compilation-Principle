@@ -119,6 +119,7 @@ SymbolTable::SymbolTable(SymbolTable *prev)
 */
 SymbolEntry* SymbolTable::lookup(std::string name)  // 很常用，从当前的代码块对应的符号表开始查起，一直查到main函数的符号表
 {
+    // 很常用，从当前的代码块对应的符号表开始查起，一直查到global的符号表
     SymbolTable *temp = identifiers;
     SymbolEntry *result = nullptr;  // 最后的搜索结果
     while (temp != nullptr && result == nullptr) {

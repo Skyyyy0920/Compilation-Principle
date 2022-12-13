@@ -8,7 +8,7 @@ extern FILE* yyout;
 Function::Function(Unit *u, SymbolEntry *s)
 {
     u->insertFunc(this);
-    entry = new BasicBlock(this);
+    entry = new BasicBlock(this); // 新创建开始的基本块
     sym_ptr = s;
     parent = u;
 }
@@ -29,7 +29,7 @@ void Function::remove(BasicBlock *bb)
 
 void Function::output() const
 {
-    FunctionType* funcType = dynamic_cast<FunctionType*>(sym_ptr->getType());
+    FunctionType* funcType = dynamic_cast<FunctionType*>(sym_ptr->getType()); // 父类转换成子类，这块儿一定是函数的ID
     Type *retType = funcType->getReturnType();
     fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str());
     std::set<BasicBlock *> v;
@@ -43,6 +43,7 @@ void Function::output() const
         bb->output();
         for (auto succ = bb->succ_begin(); succ != bb->succ_end(); succ++)
         {
+            // set数据结构iter查找，如果没有查找到就返回end
             if (v.find(*succ) == v.end())
             {
                 v.insert(*succ);
@@ -50,5 +51,6 @@ void Function::output() const
             }
         }
     }
+    // 函数打印完成
     fprintf(yyout, "}\n");
 }

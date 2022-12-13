@@ -56,7 +56,7 @@ Program
     }
     ;
 Stmts
-    : 
+    :   
     Stmt { $$ = $1; }
     | 
     Stmts Stmt{
@@ -210,7 +210,7 @@ UnaryExp
         else{
             $$ = new CallExpr(se, $3);
         }
-    }
+    } 
     ;
 MulExp
     :

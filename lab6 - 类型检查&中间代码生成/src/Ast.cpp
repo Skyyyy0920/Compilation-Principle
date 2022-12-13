@@ -35,6 +35,7 @@ void Node::setNext(Node *node)
     // 上面的ifelse是否可以写成n->next = node
 }
 
+// 回填函数，需要向下继承
 void Node::backPatch(std::vector<Instruction *> &list, BasicBlock *bb)
 {
     for (auto &inst : list)
@@ -58,7 +59,7 @@ std::vector<Instruction *> Node::merge(std::vector<Instruction *> &list1, std::v
 
 void Constant::genCode()
 {
-
+    // do nothing
 }
 
 void Constant::typeCheck()
@@ -81,25 +82,185 @@ void Ast::genCode(Unit *unit)
 void FunctionDef::genCode()
 {
     Unit *unit = builder->getUnit();
-    Function *func = new Function(unit, se);
-    BasicBlock *entry = func->getEntry();
+    Function *func = new Function(unit, se); // se函数名符号表项
+    BasicBlock *entry = func->getEntry(); //返回入口基本块
     // set the insert point to the entry basicblock of this function.
     builder->setInsertBB(entry);
 
+    // ??不知道能不能过呀
+    decl->genCode();
     stmt->genCode();
 
     /**
      * Construct control flow graph. You need do set successors and predecessors for each basic block.
      * Todo
     */
+    // 这里属于是构造控制流图，不知道注释掉能不能过
+    for (auto block = func->begin(); block != func->end(); block++){
+        // 获取第一条指令和最后一条指令
+        Instruction* first_inst = (*block)->begin();
+        Instruction* last_inst = (*block)->rbegin();
+        // 删除基本块中的条件跳转指令，应该就是基本块的最后一条指令，但是感觉可以不删??
+        /*
+        while (first_inst != last_inst) {
+            if (first_inst->isCond() || first_inst->isUncond()) {
+                (*block)->remove(first_inst);
+            }
+            first_inst = first_inst->getNext();
+        }
+        */
+
+        // 插入true branch和false branch
+        if (last_inst->isCond()) {
+            BasicBlock *truebranch, *falsebranch;
+            truebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getTrueBranch();
+            falsebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getFalseBranch();
+            // 给当前block基本块设置后继block
+            (*block)->addSucc(truebranch);
+            (*block)->addSucc(falsebranch);
+            // 给true和false基本块设置前继block
+            truebranch->addPred(*block);
+            falsebranch->addPred(*block);
+        }
+        // 无条件跳转指令，基本块中无条件跳转指令为空就提示函数要ret返回了
+        else if (last_inst->isUncond()){
+            BasicBlock* to = dynamic_cast<UncondBrInstruction*>(last_inst)->getBranch();
+            (*block)->addSucc(to);
+            to->addPred(*block);
+            if(to->empty()){
+                // 获取函数的返回值类型构建最后一个exit基本块
+                if (dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::intType){
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(func);
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), temp_block);
+                    func->insertBlock(temp_block);
+                    func->setExit(temp_block); // 设置基本块??
+                    // new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), to);
+                }
+                else if(dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::floatType){
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(func);
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), temp_block);
+                    func->insertBlock(temp_block);
+                    func->setExit(temp_block); // 设置基本块??
+                    // new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), to);
+                }
+                // void类型
+                else{
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(func);
+                    new RetInstruction(nullptr, temp_block);
+                    func->insertBlock(temp_block);
+                    func->setExit(temp_block); 
+                    // new RetInstruction(nullptr, to);
+                }
+            }
+        }
+        // 如果既不是跳转指令也不是返回指令就补充返回指令，同void类型
+        else if (!last_inst->isRet()) {
+            if ((dynamic_cast<FunctionType*>(se->getType())->getReturnType()) == TypeSystem::voidType){
+                Function *cur_func = (*block)->getParent();
+                BasicBlock *temp_block = new BasicBlock(func);
+                new RetInstruction(nullptr, temp_block);
+                func->insertBlock(temp_block);
+                func->setExit(temp_block);
+                // new RetInstruction(nullptr, *block);
+            }
+        }
+    }
    
 }
 
+// 待测试
 void UnaryExpr::genCode()
 {
+    // 获取当前的基本块
+    BasicBlock *bb = builder->getInsertBB();
+    expr->genCode();
+    Operand* src = expr->getOperand();
 
+    if(op == NON){
+        if(!src->getType()->isBool()){
+            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel()));
+            new CmpInstruction(CmpInstruction::NE, temp, src, new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
+            // 为了xor指令的实现，将src指令切换为bool类型
+            src = temp;
+        }
+        new XorInstruction(dst, src, bb);
+    }
+    else if(op == ADD){
+        Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
+        Operand* src2 = expr->getOperand();
+        if(src->getType()->isBool()){
+            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
+            new ZextInstruction(temp, src2, bb);
+            src2 = temp;
+        }
+        new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+    }
+    else if(op == SUB){
+        Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
+        Operand* src2 = expr->getOperand();
+        if(src->getType()->isBool()){
+            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
+            new ZextInstruction(temp, src2, bb);
+            src2 = temp;
+        }
+        new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+    }
+
+    // 最好还是别用switch，有变量定义就用不了switch
+    /*
+    Operand* src = expr->getOperand(); // 获取expr的操作数
+    // 用0构建二元表达式加，只不过如果是bool类型的一元表达式需要类型转换
+    Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
+    Operand* src2 = expr->getOperand();
+    switch(op)
+    {
+        case NON:
+            if(!src->getType()->isBool()){
+                Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel()));
+                new CmpInstruction(CmpInstruction::NE, temp, src, new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
+                // 为了xor指令的实现，将src指令切换为bool类型
+                src = temp;
+            }
+            new XorInstruction(dst, src, bb);
+            break;
+        case ADD:
+            if(src->getType()->isBool()){
+                Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
+                new ZextInstruction(temp, src2, bb);
+                src2 = temp;
+            }
+            new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+            break;
+        case SUB:
+            // Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
+            // Operand* src2 = expr->getOperand();
+            if(src->getType()->isBool()){
+                Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
+                new ZextInstruction(temp, src2, bb);
+                src2 = temp;
+            }
+            new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+            break;
+        default:
+            break;
+    }
+    */
 }
 
+// 这里没有ExprNode的虚函数gencode，不知道能不能过存疑
+
+void checkbool(Operand* tocheck, BasicBlock* bb){
+    if (tocheck->getType()->isBool()) {
+            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel()));
+            new ZextInstruction(temp, tocheck, bb);
+            tocheck = temp;
+    }
+}
+
+// 二元运算表达式
 void BinaryExpr::genCode()
 {
     BasicBlock *bb = builder->getInsertBB();
@@ -111,16 +272,76 @@ void BinaryExpr::genCode()
         backPatch(expr1->trueList(), trueBB);
         builder->setInsertBB(trueBB);               // set the insert point to the trueBB so that intructions generated by expr2 will be inserted into it.
         expr2->genCode();
-        true_list = expr2->trueList();
+        true_list = expr2->trueList(); // Node节点给出的true list和false list
         false_list = merge(expr1->falseList(), expr2->falseList());
     }
     else if(op == OR)
     {
         // Todo
+        // 对于OR的逻辑预算而言，同为false才能跳转到false branch上
+        BasicBlock* falseBB = new BasicBlock(func);
+        expr1->genCode();
+        backPatch(expr1->falseList(), falseBB);
+        builder->setInsertBB(falseBB);
+        expr2->genCode();
+        true_list = merge(expr1->trueList(), expr2->trueList());
+        false_list = expr2->falseList();
     }
-    else if(op >= LESS && op <= GREATER)
+    // 包含所有关系运算的二元表达式
+    else if(op >= LESS && op <= NOTEQUAL)
     {
         // Todo
+        expr1->genCode();
+        expr2->genCode();
+        Operand *src1 = expr1->getOperand();
+        Operand *src2 = expr2->getOperand();
+        checkbool(src1, bb);
+        checkbool(src2, bb);
+        int opcode;
+        // 确定操作码
+        switch(opcode)
+        {
+            case LESS:
+                opcode = CmpInstruction::L;
+                break;
+            case GREATER:
+                opcode = CmpInstruction::G;
+                break;
+            case LORE:
+                opcode = CmpInstruction::LE;
+                break;
+            case GORE:
+                opcode = CmpInstruction::GE;
+                break;
+            case EQUAL:
+                opcode = CmpInstruction::E;
+                break;
+            case NOTEQUAL:
+                opcode = CmpInstruction::NE;
+                break;
+            default:
+                break;
+        }
+        new CmpInstruction(opcode, dst, src1, src2, bb);
+        // 这块儿的逻辑怪怪的
+        /*
+        BasicBlock *truebb, *falsebb, *tempbb;
+        //临时假块
+        truebb = new BasicBlock(func);
+        falsebb = new BasicBlock(func);
+        tempbb = new BasicBlock(func);
+
+        true_list.push_back(new CondBrInstruction(truebb, tempbb, dst, bb));
+        false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
+        */
+
+        // 正确错误列表合并？？问问
+        true_list = merge(expr1->trueList(), expr2->trueList());
+        false_list = merge(expr1->falseList(), expr2->falseList());
+        Instruction* temp = new CondBrInstruction(nullptr,nullptr,dst,bb);
+        this->trueList().push_back(temp);
+        this->falseList().push_back(temp);
+        
     }
     else if(op >= ADD && op <= SUB)
     {
@@ -131,12 +352,23 @@ void BinaryExpr::genCode()
         int opcode;
         switch (op)
         {
-        case ADD:
-            opcode = BinaryInstruction::ADD;
-            break;
-        case SUB:
-            opcode = BinaryInstruction::SUB;
-            break;
+            case ADD:
+                opcode = BinaryInstruction::ADD;
+                break;
+            case SUB:
+                opcode = BinaryInstruction::SUB;
+                break;
+            case MUL:
+                opcode = BinaryInstruction::MUL;
+                break;
+            case DIV:
+                opcode = BinaryInstruction::DIV;
+                break;
+            case MOD:
+                opcode = BinaryInstruction::MOD;
+                break;
+            default:
+                break;
         }
         new BinaryInstruction(opcode, dst, src1, src2, bb);
     }
@@ -144,11 +376,10 @@ void BinaryExpr::genCode()
 
 void Id::genCode()
 {
-    /*
+    // 这里目前只针对int和float型变量，如果要处理array还要进行增添
     BasicBlock *bb = builder->getInsertBB();
     Operand *addr = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getAddr();
     new LoadInstruction(dst, addr, bb);
-    */
 }
 
 void IfStmt::genCode()
@@ -175,36 +406,102 @@ void IfStmt::genCode()
 void IfElseStmt::genCode()
 {
     // Todo
+    Function *func;
+    BasicBlock *then_bb, *else_bb, *end_bb;
+
+    func = builder->getInsertBB()->getParent();
+    then_bb = new BasicBlock(func);
+    else_bb = new BasicBlock(func); 
+    end_bb = new BasicBlock(func);
+
+    cond->genCode();
+    // ??
+    if(!cond -> getOperand() -> getType() -> isBool()){}
+    backPatch(cond->trueList(), then_bb);
+    backPatch(cond->falseList(), else_bb);
+
+    // 就是将所有的then bb和else bb都最后指向end bb的位置
+    builder->setInsertBB(then_bb);
+    thenStmt->genCode();
+    then_bb = builder->getInsertBB();
+    new UncondBrInstruction(end_bb, then_bb);
+
+    builder->setInsertBB(else_bb);
+    elseStmt->genCode();
+    else_bb = builder->getInsertBB();
+    new UncondBrInstruction(end_bb, else_bb);
+
+    builder->setInsertBB(end_bb);
 }
 
 void CompoundStmt::genCode()
 {
     // Todo
+    if(stmt != nullptr)
+        stmt->genCode();
+    else;
 }
 
 void SeqNode::genCode()
 {
     // Todo
+    if(stmt1 != nullptr)
+        stmt1->genCode();
+    else;
+    if(stmt2 != nullptr)
+        stmt2->genCode();
+    else;
 }
 
 void ExprStmt::genCode()
 {
-
+    expr->genCode();
 }
 
 void BlankStmt::genCode()
 {
-
+    // do nothing
 }
 
 void BreakStmt::genCode()
 {
-
+    // ??
 }
 
 void WhileStmt::genCode()
 {
+    Function *func;
+    BasicBlock *loop_bb, *end_bb , *cond_bb; // 条件语句块，循环块，结束跳转块
 
+    BasicBlock *bb = builder->getInsertBB();
+    func = builder->getInsertBB()->getParent();
+    cond_bb = new BasicBlock(func);
+    this->cond_bb = cond_bb;
+
+    // 给当前的基本块增加跳转指令跳转到cond_bb
+    new UncondBrInstruction(cond_bb, bb);
+
+    builder->setInsertBB(cond_bb);
+    // 这里有完成类型转换嘛??
+    cond->genCode();
+    // ??
+    if(!cond -> getOperand() -> getType() -> isBool()){}
+
+    loop_bb = new BasicBlock(func);
+    end_bb = new BasicBlock(func);
+    this->loop_bb = loop_bb;
+    this->end_bb = end_bb;
+
+    // 生成完条件基本块后，就是循环块了
+    backPatch(cond->trueList(), loop_bb);
+    backPatch(cond->falseList(), end_bb);
+
+    builder->setInsertBB(loop_bb);
+    stmt->genCode();
+    loop_bb = builder -> getInsertBB();
+    new CondBrInstruction(cond_bb, end_bb, cond->getOperand(), loop_bb);
+
+    builder->setInsertBB(end_bb);
 }
 
 void ContinueStmt::genCode()
@@ -212,45 +509,76 @@ void ContinueStmt::genCode()
 
 }
 
+// AllocaInstruction(Operand *dst, SymbolEntry *se, BasicBlock *insert_bb) : Instruction(ALLOCA, insert_bb)
+// %t19 = alloca i32, align 4
+// store i32 %t13, i32* %t20, align 4
+// 这个也太难了吧
 void DeclStmt::genCode()
 {
-    /*
+    // 获得目前ID的符号表项
     IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(id->getSymPtr());
-    if(se->isGlobal())
-    {
-        Operand *addr;
-        SymbolEntry *addr_se;
+    // 如果这个是全局变量就直接插入到编译单元unit里处理
+    if(se->isGlobal()){
+        Operand *addr = nullptr;
+        SymbolEntry *addr_se = nullptr;
         addr_se = new IdentifierSymbolEntry(*se);
         addr_se->setType(new PointerType(se->getType()));
         addr = new Operand(addr_se);
         se->setAddr(addr);
+        unit.insertGlobal(se);
+        mUnit.insertGlobal(se);
     }
-    else if(se->isLocal())
-    {
+    else if(se->isLocal()){
         Function *func = builder->getInsertBB()->getParent();
         BasicBlock *entry = func->getEntry();
         Instruction *alloca;
         Operand *addr;
         SymbolEntry *addr_se;
         Type *type;
+
         type = new PointerType(se->getType());
+        // 用Identifier应该也行吧
         addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());
         addr = new Operand(addr_se);
-        alloca = new AllocaInstruction(addr, se);                   // allocate space for local id in function stack.
-        entry->insertFront(alloca);                                 // allocate instructions should be inserted into the begin of the entry block.
-        se->setAddr(addr);                                          // set the addr operand in symbol entry so that we can use it in subsequent code generation.
+        alloca = new AllocaInstruction(addr, se);                   
+        entry->insertFront(alloca); 
+        // 如果是参数需要store指令
+        Operand* temp = nullptr;
+        if (se->isParam()){
+            temp = se->getAddr();
+            BasicBlock* bb = builder->getInsertBB();
+            new StoreInstruction(addr, temp, bb);
+        }
+        se->setAddr(addr);
+        // 如果有初始值需要store指令                   
+        if (expr){
+            BasicBlock* bb = builder->getInsertBB();
+            expr->genCode();
+            Operand* src = expr->getOperand();
+            new StoreInstruction(addr, src, bb);
+        }
     }
-    */
+    // 如果使用了逗号隔开
+    if (this->getNext() != nullptr){
+        this->getNext()->genCode();
+    }
 }
 
+// RetInstruction(Operand *src, BasicBlock *insert_bb) : Instruction(RET, insert_bb)
 void ReturnStmt::genCode()
 {
     // Todo
+    BasicBlock* bb = builder->getInsertBB();
+    Operand* src = nullptr;
+    retValue->genCode();
+    src = retValue->getOperand();
+    new RetInstruction(src, bb);
 }
 
+// StoreInstruction(Operand *dst_addr, Operand *src, BasicBlock *insert_bb) : Instruction(STORE, insert_bb)
+// store i32 %t13, i32* %t20, align 4
 void AssignStmt::genCode()
 {
-    /*
     BasicBlock *bb = builder->getInsertBB();
     expr->genCode();
     Operand *addr = dynamic_cast<IdentifierSymbolEntry*>(lval->getSymPtr())->getAddr();
@@ -258,12 +586,21 @@ void AssignStmt::genCode()
     // We haven't implemented array yet, the lval can only be ID. So we just store the result of the `expr` to the addr of the id.
     // If you want to implement array, you have to caculate the address first and then store the result into it.
     new StoreInstruction(addr, src, bb);
-    */
+    // 看起来需要补充数组
 }
 
+// CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb = nullptr);
 void CallExpr::genCode()
 {
-
+    std::vector<Operand*> params;
+    ExprNode* temp = param;
+    while (temp != nullptr) {
+        temp->genCode();
+        params.push_back(temp->getOperand());
+        temp = ((ExprNode*)temp->getNext());
+    }
+    BasicBlock* bb = builder->getInsertBB();
+    new CallInstruction(dst, symbolEntry, params, bb);
 }
 
 
@@ -417,7 +754,6 @@ void ReturnStmt::typeCheck(SymbolEntry* curFunc)
 {
     Type *funcType = curFunc->getType();  // 函数的返回类型
     if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
-        retValue->typeCheck();
         Type *retType = retValue->getSymPtr()->getType();  // return语句返回的类型
         if (retType->toStr() != funcType->toStr()) {
             fprintf(stderr, "函数类型为 %s, 但返回了一个 %s 类型的表达式\n", funcType->toStr().c_str(), retType->toStr().c_str());
@@ -495,7 +831,7 @@ void FunctionDef::typeCheck()
     this->stmt->typeCheck();  // 检查函数体
     if (!this->stmt->getHaveRetStmt() && se->getType()->toStr() != "void") {
         fprintf(stderr, "函数 %s 缺少 return 语句\n", name.c_str());
-    } 
+    }
 
     if (identifiers->lookup(name) == nullptr) {  // 检查未定义问题
         fprintf(stderr,"函数 %s 未被定义\n", name.c_str());
@@ -504,7 +840,7 @@ void FunctionDef::typeCheck()
 
 void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
 {
-    // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
+    fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
     bool flag = 0;
     ExprNode* tmp = this->param;
     int rCount = 0;  // 函数调用的实参个数
@@ -526,8 +862,8 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
             }*/
             // ---------------------------------------------------------------------------
             ExprNode* fParams = this->param;  // 形参
-            // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
-            for (auto it : ((FunctionType*)func->getType())->getParams()) {
+            std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();
+            for (auto it : rParams) {
                 if (fParams == nullptr) {
                     flag = 0;
                     break;
@@ -552,10 +888,9 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
         func = func->getNext();
     }
     
-    
     if (!flag) {
         fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymPtr()->toStr().c_str());
-        // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
+        fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymPtr()->toStr().c_str());
     }    
 }
 
@@ -717,7 +1052,7 @@ void BlankStmt::output(int level)
     fprintf(yyout, "%*cBlankStmt\n", level, ' ');
 }
 
-DeclStmt::DeclStmt(Id *id, ExprNode *expr) : id(id) { this->expr = expr; };
+DeclStmt::DeclStmt(Id *id, ExprNode *expr) : id(id) { this->expr = expr; }; // 这里可能要改??
 
 void DeclStmt::output(int level)
 {

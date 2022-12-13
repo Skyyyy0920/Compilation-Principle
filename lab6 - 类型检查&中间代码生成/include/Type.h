@@ -10,7 +10,7 @@ class Type
 private:                 //private
     int kind;   
 protected:              //protected
-    enum {INT, VOID, FUNC, FLOAT, BOOL};
+    enum {INT, VOID, FUNC, FLOAT, PTR, BOOL};
 public:
     Type(int kind) : kind(kind) {};
     virtual ~Type() {};
@@ -87,7 +87,7 @@ class PointerType : public Type
 private:
     Type *valueType;
 public:
-    // PointerType(Type* valueType) : Type(Type::PTR) {this->valueType = valueType;};
+    PointerType(Type* valueType) : Type(Type::PTR) {this->valueType = valueType;};
     std::string toStr();
     Type* getReturnType() { return nullptr; };
 };

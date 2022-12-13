@@ -10,7 +10,7 @@ class Unit
     typedef std::vector<Function *>::reverse_iterator reverse_iterator;
 
 private:
-    std::vector<Function *> func_list;
+    std::vector<Function *> func_list; // unit编译单元对于func函数使用vector可以保持顺序
 public:
     Unit() = default;
     ~Unit() ;

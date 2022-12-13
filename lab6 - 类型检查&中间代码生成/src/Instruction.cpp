@@ -12,7 +12,7 @@ Instruction::Instruction(unsigned instType, BasicBlock *insert_bb)
     this->instType = instType;
     if (insert_bb != nullptr)
     {
-        insert_bb->insertBack(this);
+        insert_bb->insertBack(this); // 按顺序插入到bb的最后
         parent = insert_bb;
     }
 }
@@ -54,12 +54,13 @@ Instruction *Instruction::getPrev()
 
 BinaryInstruction::BinaryInstruction(unsigned opcode, Operand *dst, Operand *src1, Operand *src2, BasicBlock *insert_bb) : Instruction(BINARY, insert_bb)
 {
+    // operands是vector类型
     this->opcode = opcode;
     operands.push_back(dst);
     operands.push_back(src1);
     operands.push_back(src2);
-    dst->setDef(this);
-    src1->addUse(this);
+    dst->setDef(this); // 这条指令是左侧dst的定义指令
+    src1->addUse(this); // 该指令是右侧src的操作数的使用指令
     src2->addUse(this);
 }
 
@@ -68,24 +69,48 @@ BinaryInstruction::~BinaryInstruction()
     operands[0]->setDef(nullptr);
     if(operands[0]->usersNum() == 0)
         delete operands[0];
+    // 使用的话一定是定义过了，这里移除使用指令即可
     operands[1]->removeUse(this);
     operands[2]->removeUse(this);
 }
 
 void BinaryInstruction::output() const
 {
+    // op也是字符串类型
     std::string s1, s2, s3, op, type;
     s1 = operands[0]->toStr();
     s2 = operands[1]->toStr();
     s3 = operands[2]->toStr();
-    type = operands[0]->getType()->toStr();
+    type = operands[0]->getType()->toStr(); // 获取operand对应的se的type
+    // 确定打印操作码
     switch (opcode)
     {
     case ADD:
-        op = "add";
+        if (type == "float") 
+            op = "fadd";
+        else 
+            op = "add";    
         break;
     case SUB:
-        op = "sub";
+        if (type == "float") 
+            op = "fsub";
+        else
+            op = "sub";
+        break;
+    case MUL:
+        if (type == "float")
+            op = "fmul";
+        else 
+            op = "mul";
+        break;
+    case DIV:
+        if (type == "float")
+            op = "fdiv";
+        else
+            op = "sdiv";
+        break;
+    case MOD:
+        op = "srem";
         break;
     default:
         break;
@@ -93,6 +118,52 @@ void BinaryInstruction::output() const
     fprintf(yyout, "  %s = %s %s %s, %s\n", s1.c_str(), op.c_str(), type.c_str(), s2.c_str(), s3.c_str());
 }
 
+//xor instruction, 用于取反情况, bool类型和1进行异或操作
+XorInstruction::XorInstruction(Operand* dst, Operand* src, BasicBlock* insert_bb) : Instruction(XOR, insert_bb) {
+    operands.push_back(dst);
+    operands.push_back(src);
+    dst->setDef(this);
+    src->addUse(this);
+}
+
+void XorInstruction::output() const {
+    Operand* dst = operands[0];
+    Operand* src = operands[1];
+    // 这能不能写成1呀
+    fprintf(yyout, "  %s = xor %s %s, true\n", dst->toStr().c_str(), src->getType()->toStr().c_str(), src->toStr().c_str());
+}
+
+// 仿照其余的析构函数
+XorInstruction::~XorInstruction() {
+    operands[0]->setDef(nullptr);
+    if (operands[0]->usersNum() == 0)
+        delete operands[0];
+    operands[1]->removeUse(this);
+}
+
+// 完成的是bool->int的隐式类型转换
+ZextInstruction::ZextInstruction(Operand* dst, Operand* src, BasicBlock* insert_bb) : Instruction(ZEXT, insert_bb){
+    operands.push_back(dst);
+    operands.push_back(src);
+    dst->setDef(this);
+    src->addUse(this);
+}
+
+ZextInstruction::~ZextInstruction(){
+    operands[0]->setDef(nullptr);
+    if (operands[0]->usersNum() == 0)
+        delete operands[0];
+    operands[1]->removeUse(this);
+}
+
+void ZextInstruction::output() const {
+    Operand* dst = operands[0];
+    Operand* src = operands[1];
+    fprintf(yyout, "  %s = zext %s %s to i32\n", dst->toStr().c_str(),
+            src->getType()->toStr().c_str(), src->toStr().c_str());
+}
+
+// %t11 = icmp slt i32 %t9, %t10
 CmpInstruction::CmpInstruction(unsigned opcode, Operand *dst, Operand *src1, Operand *src2, BasicBlock *insert_bb): Instruction(CMP, insert_bb){
     this->opcode = opcode;
     operands.push_back(dst);
@@ -167,6 +238,7 @@ BasicBlock *UncondBrInstruction::getBranch()
     return branch;
 }
 
+// 条件跳转语句 br i1 %t11, label %B21, label %B24
 CondBrInstruction::CondBrInstruction(BasicBlock*true_branch, BasicBlock*false_branch, Operand *cond, BasicBlock *insert_bb) : Instruction(COND, insert_bb){
     this->true_branch = true_branch;
     this->false_branch = false_branch;
@@ -185,7 +257,7 @@ void CondBrInstruction::output() const
     cond = operands[0]->toStr();
     type = operands[0]->getType()->toStr();
     int true_label = true_branch->getNo();
-    int false_label = false_branch->getNo();
+    int false_label = false_branch->getNo(); // 通过no确定bb的序号也就是跳转位置
     fprintf(yyout, "  br %s %s, label %%B%d, label %%B%d\n", type.c_str(), cond.c_str(), true_label, false_label);
 }
 
@@ -209,8 +281,10 @@ BasicBlock *CondBrInstruction::getTrueBranch()
     return true_branch;
 }
 
+// ret i32 %t16
 RetInstruction::RetInstruction(Operand *src, BasicBlock *insert_bb) : Instruction(RET, insert_bb)
 {
+    // 是否返回为void
     if(src != nullptr)
     {
         operands.push_back(src);
@@ -232,6 +306,7 @@ void RetInstruction::output() const
     }
     else
     {
+        // 获取return的type
         std::string ret, type;
         ret = operands[0]->toStr();
         type = operands[0]->getType()->toStr();
@@ -239,11 +314,12 @@ void RetInstruction::output() const
     }
 }
 
+// %t19 = alloca i32, align 4
 AllocaInstruction::AllocaInstruction(Operand *dst, SymbolEntry *se, BasicBlock *insert_bb) : Instruction(ALLOCA, insert_bb)
 {
     operands.push_back(dst);
     dst->setDef(this);
-    this->se = se;
+    this->se = se; // 设置符号表项
 }
 
 AllocaInstruction::~AllocaInstruction()
@@ -253,6 +329,7 @@ AllocaInstruction::~AllocaInstruction()
         delete operands[0];
 }
 
+// 这要判断类型的，数组要判断设置
 void AllocaInstruction::output() const
 {
     std::string dst, type;
@@ -261,6 +338,7 @@ void AllocaInstruction::output() const
     fprintf(yyout, "  %s = alloca %s, align 4\n", dst.c_str(), type.c_str());
 }
 
+// %t13 = load i32, i32* %t18, align 4
 LoadInstruction::LoadInstruction(Operand *dst, Operand *src_addr, BasicBlock *insert_bb) : Instruction(LOAD, insert_bb)
 {
     operands.push_back(dst);
@@ -277,6 +355,7 @@ LoadInstruction::~LoadInstruction()
     operands[1]->removeUse(this);
 }
 
+// 这里不需要新补充（int，float都是4）？？
 void LoadInstruction::output() const
 {
     std::string dst = operands[0]->toStr();
@@ -288,6 +367,7 @@ void LoadInstruction::output() const
     fprintf(yyout, "  %s = load %s, %s %s, align 4\n", dst.c_str(), dst_type.c_str(), src_type.c_str(), src.c_str());
 }
 
+// store i32 %t13, i32* %t20, align 4
 StoreInstruction::StoreInstruction(Operand *dst_addr, Operand *src, BasicBlock *insert_bb) : Instruction(STORE, insert_bb)
 {
     operands.push_back(dst_addr);

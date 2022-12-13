@@ -17,6 +17,7 @@ Type* TypeSystem::constIntType = &commonConstInt;
 Type* TypeSystem::constFloatType = &commonConstFloat;
 Type* TypeSystem::constBoolType = &commonConstBool;
 
+// 这要改一下改成输出的是i32，tostr函数打印中间代码要为i32
 std::string IntType::toStr()
 {
     if (type_constant) {
@@ -55,13 +56,13 @@ std::string VoidType::toStr()
 std::string FunctionType::toStr()
 {
     std::ostringstream buffer;
-    buffer << returnType->toStr();  // << "()";
+    buffer << returnType->toStr() << "()";
     return buffer.str();
 }
 
 std::string PointerType::toStr()
 {
     std::ostringstream buffer;
-    buffer << valueType->toStr();  // << "*";
+    buffer << valueType->toStr() << "*";
     return buffer.str();
 }

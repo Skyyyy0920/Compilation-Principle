@@ -43,7 +43,7 @@ class ExprNode : public Node
 {
 protected:
     SymbolEntry *symbolEntry;
-    Operand *dst;   // The result of the subtree is stored into dst.
+    Operand *dst;   // The result of the subtree is stored into dst.子树的结果存储在dst之中
     Type* type;
 public:
     ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){ dst = nullptr; type = nullptr; };
@@ -157,7 +157,7 @@ class DeclStmt : public StmtNode  // 变量、常量声明
 {
 private:
     Id *id;
-    ExprNode* expr;
+    ExprNode* expr; // 右侧的表达式
 public:
     DeclStmt(Id *id, ExprNode* expr = nullptr);
     void output(int level);
@@ -196,6 +196,9 @@ class WhileStmt : public StmtNode {
 private:
     ExprNode* cond;
     StmtNode* stmt;
+    BasicBlock *cond_bb;
+    BasicBlock *loop_bb;
+    BasicBlock *end_bb;
 public:
     // cond如果是i32要转换为i1的bool类型
     WhileStmt(ExprNode* cond, StmtNode* stmt=nullptr) : cond(cond), stmt(stmt) {
@@ -205,6 +208,7 @@ public:
         // }
     };
     void setStmt(StmtNode* stmt){this->stmt = stmt;};
+    ExprNode* getCond(){return cond;};
     void output(int level);
     void typeCheck();
     void genCode();
