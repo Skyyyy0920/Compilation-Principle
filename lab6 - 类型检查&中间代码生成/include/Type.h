@@ -7,9 +7,9 @@
 // 虚基类
 class Type
 {
-private:                 //private
+private:
     int kind;   
-protected:              //protected
+protected:
     enum {INT, VOID, FUNC, FLOAT, PTR, BOOL};
 public:
     Type(int kind) : kind(kind) {};

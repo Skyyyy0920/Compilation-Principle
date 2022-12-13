@@ -56,22 +56,8 @@ std::vector<Instruction *> Node::merge(std::vector<Instruction *> &list1, std::v
 }
 
 
+
 //------------------------------------------  中间代码生成  ------------------------------------------//
-
-void Constant::genCode()
-{
-    // do nothing
-}
-
-void Constant::typeCheck()
-{
-
-}
-
-void Constant::output(int level)
-{
-
-}
 
 void Ast::genCode(Unit *unit)
 {
@@ -429,6 +415,11 @@ void BinaryExpr::genCode()
     }
 }
 
+void Constant::genCode()
+{
+    // do nothing
+}
+
 void Id::genCode()
 {
     // 这里目前只针对int和float型变量，如果要处理array还要进行增添
@@ -688,6 +679,11 @@ void BinaryExpr::typeCheck()
     else if (type2->toStr() == "void") {
         fprintf(stderr, "expr2为 void 类型, 不能参与计算\n");
     }
+}
+
+void Constant::typeCheck()
+{
+
 }
 
 void Id::typeCheck()
@@ -1076,6 +1072,11 @@ void Constant::output(int level)
 }
 */
 
+void Constant::output(int level)
+{
+
+}
+
 void Id::output(int level)
 {
     std::string name, type;
@@ -1083,8 +1084,13 @@ void Id::output(int level)
     name = symbolEntry->toStr();
     type = symbolEntry->getType()->toStr();
     scope = dynamic_cast<IdentifierSymbolEntry *>(symbolEntry)->getScope();
-    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\n", level, ' ',
-            name.c_str(), scope, type.c_str());
+    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\n", level, ' ', name.c_str(), scope, type.c_str());
+}
+
+void ImplicitCastExpr::output(int level)
+{
+    fprintf(yyout, "%*cImplictCastExpr\ttype: %s to %s\n", level, ' ', expr->getType()->toStr().c_str(), type->toStr().c_str());
+    this->expr->output(level + 4);
 }
 
 void CompoundStmt::output(int level)
@@ -1185,4 +1191,50 @@ void FunctionDef::output(int level)
         decl->output(level + 4);
     }
     stmt->output(level + 4);
+}
+
+
+
+//------------------------------------------  一些额外的函数  ------------------------------------------//
+
+BinaryExpr::BinaryExpr(SymbolEntry* se, int op, ExprNode* expr1, ExprNode* expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2)
+{
+    dst = new Operand(se);
+    std::string op_str;
+ 
+    // 对于cond需要隐式转换
+    if (op >= BinaryExpr::AND && op <= BinaryExpr::NOTEQUAL) {
+        type = TypeSystem::boolType;
+        if (op == BinaryExpr::AND || op == BinaryExpr::OR) {
+            if (expr1->getType()->isInt()) {
+                ImplicitCastExpr* temp = new ImplicitCastExpr(expr1);
+                this->expr1 = temp;
+            }
+            if (expr2->getType()->isInt()) {
+                ImplicitCastExpr* temp = new ImplicitCastExpr(expr2);
+                this->expr2 = temp;
+            }
+        }
+    }
+    else {
+        type = TypeSystem::intType;
+    }
+};
+
+ImplicitCastExpr::ImplicitCastExpr(ExprNode* expr) : ExprNode(nullptr), expr(expr)
+{
+    type = TypeSystem::boolType;
+    symbolEntry = new TemporarySymbolEntry(type, SymbolTable::getLabel());
+    dst = new Operand(symbolEntry);
+}
+
+ExprNode* ExprNode::copy() {
+    ExprNode* ret;
+    ExprNode* temp = this;
+    if (temp->getNext()) {
+        ret->cleanNext();
+        temp = (ExprNode*)(temp->getNext());
+        ret->setNext(temp->copy());
+    }
+    return ret;
 }

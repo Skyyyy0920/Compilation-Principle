@@ -4,5 +4,9 @@ function "func" is undefined
 ==========================================================
 
 IfElseStmt条件判断表达式类型为int, 隐式类型转换为bool
+
+类型检查完成
+==========================================================
+
 timeout: the monitored command dumped core
 Segmentation fault

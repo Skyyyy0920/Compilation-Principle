@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include "Operand.h"
+#include "Type.h"
 
 class SymbolEntry;
 class Unit;
@@ -23,7 +24,6 @@ protected:
     static IRBuilder *builder;
     void backPatch(std::vector<Instruction*> &list, BasicBlock*bb);
     std::vector<Instruction*> merge(std::vector<Instruction*> &list1, std::vector<Instruction*> &list2);
-
 public:
     Node();
     int getSeq() const {return seq;};
@@ -49,6 +49,8 @@ public:
     ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){ dst = nullptr; type = nullptr; };
     Operand* getOperand() {return dst;};
     SymbolEntry* getSymPtr() {return symbolEntry;};
+    ExprNode* copy();
+    virtual Type* getType() { return type; };
 };
 
 class UnaryExpr : public ExprNode  // 单目运算符
@@ -72,7 +74,7 @@ private:
     ExprNode *expr1, *expr2;
 public:
     enum {ADD, SUB, MUL, DIV, MOD, AND, OR, LESS, GREATER, GORE, LORE, EQUAL, NOTEQUAL};
-    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){dst = new Operand(se);};
+    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2);
     void output(int level);
     void typeCheck();
     void genCode();
@@ -85,6 +87,20 @@ public:
     void output(int level);
     void typeCheck();
     void genCode();
+};
+
+// int2bool, int2float, float2int
+class ImplicitCastExpr : public ExprNode 
+{
+private:
+    ExprNode* expr;
+public:
+    ImplicitCastExpr(ExprNode* expr);
+    // ImplicitCastExpr(const ImplicitCastExpr& i);
+    void output(int level);
+    ExprNode* getExpr() const { return expr; };
+    void typeCheck() {};
+    void genCode() {};
 };
 
 class Id : public ExprNode  // identifier
