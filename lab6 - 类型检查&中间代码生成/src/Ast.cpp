@@ -80,10 +80,10 @@ void FunctionDef::genCode() {
 
     // 生成控制流图
     for(auto block = func->begin(); block != func->end(); block++){
-        //获取该块的最后一条指令
+        // 获取该块的最后一条指令
         Instruction* i = (*block)->begin();
         Instruction* last = (*block)->rbegin();
-        //从块中删除条件型语句
+        // 从块中删除条件型语句
         while (i != last){
             if (i->isCond() || i->isUncond()){
                 (*block)->remove(i);
@@ -106,6 +106,7 @@ void FunctionDef::genCode() {
             (*block)->addSucc(dst);
             // 插入return
             dst->addPred(*block);
+            // 无条件跳转的空块
             if (dst->empty()){
                 if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::intType){
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
@@ -340,7 +341,7 @@ void BinaryExpr::genCode()
         checkbool(src2, bb);
         int opcode = -1;
         // 确定操作码
-        switch(opcode)
+        switch(op)
         {
             case LESS:
                 opcode = CmpInstruction::L;
@@ -513,6 +514,12 @@ void BlankStmt::genCode()
 void BreakStmt::genCode()
 {
     // ??
+    BasicBlock* bb = builder->getInsertBB();
+    Function* func = bb->getParent();
+    next_bb = ((WhileStmt*)whileStmt)->get_end_bb();
+    new UncondBrInstruction(next_bb, bb);
+    BasicBlock* break_next_bb = new BasicBlock(func);
+    builder->setInsertBB(break_next_bb);
 }
 
 void WhileStmt::genCode()
@@ -553,7 +560,14 @@ void WhileStmt::genCode()
 
 void ContinueStmt::genCode()
 {
-
+    BasicBlock* bb = builder->getInsertBB();
+    Function* func = bb->getParent();
+    // 直接跳转到条件判断处
+    next_bb = ((WhileStmt*)whileStmt)->get_cond_bb();
+    new UncondBrInstruction(next_bb, bb);
+    // 虽然已经设置好了跳转基本块，还是要按部就班往下继续生成代码
+    BasicBlock* continue_next_bb = new BasicBlock(func);
+    builder->setInsertBB(continue_next_bb);
 }
 
 // AllocaInstruction(Operand *dst, SymbolEntry *se, BasicBlock *insert_bb) : Instruction(ALLOCA, insert_bb)
@@ -847,12 +861,16 @@ void WhileStmt::typeCheck()
 
 void BreakStmt::typeCheck()
 {
-
+    if(whileStmt == nullptr){
+        fprintf(stderr, "break语句不处于while循环范围内\n");
+    }
 }
 
 void ContinueStmt::typeCheck()
 {
-    
+    if(whileStmt == nullptr){
+        fprintf(stderr, "continue语句不处于while循环范围内\n");
+    }
 }
 
 void AssignStmt::typeCheck()
@@ -1229,7 +1247,7 @@ ImplicitCastExpr::ImplicitCastExpr(ExprNode* expr) : ExprNode(nullptr), expr(exp
 }
 
 ExprNode* ExprNode::copy() {
-    ExprNode* ret;
+    ExprNode* ret = nullptr;
     ExprNode* temp = this;
     if (temp->getNext()) {
         ret->cleanNext();
@@ -1237,4 +1255,77 @@ ExprNode* ExprNode::copy() {
         ret->setNext(temp->copy());
     }
     return ret;
+}
+
+int UnaryExpr::getValue()
+{
+    int value = 0;
+    switch (op) {
+        case NON:
+            value = !(expr->getValue());
+            break;
+        case SUB:
+            value = -(expr->getValue());
+            break;
+    }
+    return value;
+}
+
+int BinaryExpr::getValue()
+{
+    int value = 0;
+    switch (op) {
+        case ADD:
+            value = expr1->getValue() + expr2->getValue();
+            break;
+        case SUB:
+            value = expr1->getValue() - expr2->getValue();
+            break;
+        case MUL:
+            value = expr1->getValue() * expr2->getValue();
+            break;
+        case DIV:
+            if(expr2->getValue())
+                value = expr1->getValue() / expr2->getValue();
+            else fprintf(stderr, "被除数为0, 错误");
+            break;
+        case MOD:
+            value = expr1->getValue() % expr2->getValue();
+            break;
+        case AND:
+            value = expr1->getValue() && expr2->getValue();
+            break;
+        case OR:
+            value = expr1->getValue() || expr2->getValue();
+            break;
+        case LESS:
+            value = expr1->getValue() < expr2->getValue();
+            break;
+        case LORE:
+            value = expr1->getValue() <= expr2->getValue();
+            break;
+        case GREATER:
+            value = expr1->getValue() > expr2->getValue();
+            break;
+        case GORE:
+            value = expr1->getValue() >= expr2->getValue();
+            break;
+        case EQUAL:
+            value = expr1->getValue() == expr2->getValue();
+            break;
+        case NOTEQUAL:
+            value = expr1->getValue() != expr2->getValue();
+            break;
+    }
+    return value;
+}
+
+int Constant::getValue() {
+    if (this->getSymPtr()->getType()->isInt()) return ((ConstantSymbolEntry*)this->getSymPtr())->getiValue();
+    else return ((ConstantSymbolEntry*)this->getSymPtr())->getfValue();
+}
+
+int Id::getValue() {
+    if (this->getSymPtr()->getType()->isInt()) return ((IdentifierSymbolEntry*)this->getSymPtr())->getiValue();
+    else return ((IdentifierSymbolEntry*)this->getSymPtr())->getfValue();
 }

@@ -51,6 +51,7 @@ public:
     SymbolEntry* getSymPtr() {return symbolEntry;};
     ExprNode* copy();
     virtual Type* getType() { return type; };
+    virtual int getValue() { return -1; };
 };
 
 class UnaryExpr : public ExprNode  // 单目运算符
@@ -61,10 +62,10 @@ private:
 public:
     enum {ADD, SUB, NON};  // + - !
     UnaryExpr(SymbolEntry *se, int op, ExprNode*expr) : ExprNode(se), op(op), expr(expr){};
-    // float getValue();    
     void output(int level);
     void typeCheck();
     void genCode();
+    int getValue();
 };
 
 class BinaryExpr : public ExprNode  // 双目运算符
@@ -78,6 +79,7 @@ public:
     void output(int level);
     void typeCheck();
     void genCode();
+    int getValue();
 };
 
 class Constant : public ExprNode
@@ -87,6 +89,7 @@ public:
     void output(int level);
     void typeCheck();
     void genCode();
+    int getValue();
 };
 
 // int2bool, int2float, float2int
@@ -110,6 +113,7 @@ public:
     void output(int level);
     void typeCheck();
     void genCode();
+    int getValue();
 };
 
 class StmtNode : public Node {
@@ -217,7 +221,7 @@ private:
     BasicBlock *end_bb;
 public:
     // cond如果是i32要转换为i1的bool类型
-    WhileStmt(ExprNode* cond, StmtNode* stmt=nullptr) : cond(cond), stmt(stmt) {
+    WhileStmt(ExprNode* cond, StmtNode* stmt = nullptr) : cond(cond), stmt(stmt) {
         // if (cond->getType()->isInt() && cond->getType()->getSize() == 32) {
         //     ImplictCastExpr* temp = new ImplictCastExpr(cond);
         //     this->cond = temp;
@@ -225,6 +229,9 @@ public:
     };
     void setStmt(StmtNode* stmt){this->stmt = stmt;};
     ExprNode* getCond(){return cond;};
+    BasicBlock* get_cond_bb() { return this->cond_bb; };
+    BasicBlock* get_loop_bb() { return this->loop_bb; };
+    BasicBlock* get_end_bb() { return this->end_bb; };
     void output(int level);
     void typeCheck();
     void genCode();
@@ -233,10 +240,15 @@ public:
 class BreakStmt : public StmtNode
 {
 private:
-    // StmtNode *breakStmt;
+    // 存储父节点，用于获取跳转的基本块
+    StmtNode *whileStmt;
+    BasicBlock *next_bb;
 public:
-    BreakStmt(){};
+    // BreakStmt(){whileStmt = nullptr;};
+    // 不能直接在生成这个节点的时候初始化
+    BreakStmt(StmtNode* whileStmt) {this->whileStmt = whileStmt;};
     // BreakStmt(StmtNode* BreakStmt) : breakStmt(breakStmt){};
+    void setStmt(StmtNode* whileStmt){this->whileStmt = whileStmt;};
     void output(int level);
     void typeCheck();
     void genCode();
@@ -245,10 +257,13 @@ public:
 class ContinueStmt : public StmtNode
 {
 private:
-    // StmtNode *whileStmt;
+    StmtNode *whileStmt;
+    BasicBlock *next_bb;
 public:
-    ContinueStmt(){};
+    // ContinueStmt(){whileStmt = nullptr;};
+    ContinueStmt(StmtNode* whileStmt = nullptr) {this->whileStmt = whileStmt;};
     // ContinueStmt(StmtNode* whileStmt) : whileStmt(whileStmt){};
+    void setStmt(StmtNode* whileStmt){this->whileStmt = whileStmt;};
     void output(int level);
     void typeCheck();
     void genCode();

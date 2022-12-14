@@ -11,6 +11,7 @@
     Type* declType;
     SymbolEntry* curFunc;
     stack<string> varlist;
+    stack<WhileStmt*> whilestack;
 
     int yylex();
     int yyerror( char const * );
@@ -134,18 +135,39 @@ IfStmt
     }
     ;
 WhileStmt
-    : WHILE LPAREN Cond RPAREN Stmt {
-        $$ = new WhileStmt($3, $5);
+    : WHILE LPAREN Cond RPAREN {
+        WhileStmt *whileNode = new WhileStmt($3);
+        // $<stmttype>$ = whileNode;
+        whilestack.push(whileNode);
+    }
+    Stmt {
+        // StmtNode *whileNode = $<stmttype>5; 
+        // ((WhileStmt*)whileNode)->setStmt($6);
+        whilestack.top()->setStmt($6);
+        $$ = whilestack.top();
+        whilestack.pop();
     }
     ;
 BreakStmt
     : BREAK SEMICOLON {
-        $$ = new BreakStmt();
+        if(whilestack.empty()){
+            $$ = new BreakStmt(nullptr);
+        }
+        else{
+            $$ = new BreakStmt(whilestack.top());
+        }
+        // cout << "1" << endl;
     }
     ;
 ContinueStmt
     : CONTINUE SEMICOLON {
-        $$ = new ContinueStmt();
+        // stack为空就不能直接调用top函数了，会报错
+        if(whilestack.empty()){
+            $$ = new ContinueStmt(nullptr);
+        }
+        else{
+            $$ = new ContinueStmt(whilestack.top());
+        }
     }
     ;
 ReturnStmt
@@ -170,7 +192,7 @@ Cond
     :
     LOrExp {$$ = $1;}
     ;
-PrimaryExp
+PrimaryExp  // 表达式最初的右值, 一般为数字0-9, 或者id
     :
     LVal {$$ = $1;}
     | INTEGER {
