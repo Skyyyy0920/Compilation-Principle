@@ -38,9 +38,11 @@ bool SymbolEntry::setNext(SymbolEntry* se)  // 判断新声明的函数是否可
 
 ConstantSymbolEntry::ConstantSymbolEntry(Type *type, int ivalue) : SymbolEntry(type, SymbolEntry::CONSTANT) {
     this->ivalue = ivalue;
+    this->fvalue = 0;
 }
 
 ConstantSymbolEntry::ConstantSymbolEntry(Type *type, float fvalue) : SymbolEntry(type, SymbolEntry::CONSTANT) {
+    this->ivalue = 0;
     this->fvalue = fvalue;
 }
 

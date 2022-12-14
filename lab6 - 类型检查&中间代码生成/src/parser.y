@@ -193,8 +193,7 @@ Cond
     LOrExp {$$ = $1;}
     ;
 PrimaryExp  // 表达式最初的右值, 一般为数字0-9, 或者id
-    :
-    LVal {$$ = $1;}
+    : LVal { $$ = $1; }
     | INTEGER {
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
         $$ = new Constant(se);
@@ -203,11 +202,11 @@ PrimaryExp  // 表达式最初的右值, 一般为数字0-9, 或者id
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::floatType, $1);
         $$ = new Constant(se);
     }
-    | LPAREN Exp RPAREN{$$ = $2;}
+    | LPAREN Exp RPAREN { $$ = $2; }
     ;
 UnaryExp
     :
-    PrimaryExp {$$ = $1;}
+    PrimaryExp { $$ = $1; }
     |
     ADD UnaryExp {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());

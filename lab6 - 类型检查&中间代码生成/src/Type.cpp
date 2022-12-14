@@ -1,20 +1,11 @@
 #include "Type.h"
 #include <sstream>
 
-/*
-IntType TypeSystem::commonInt = IntType(4);  // 这里传入的是byte为单位，区别于框架代码中的bit
-FloatType TypeSystem::commonFloat = FloatType(4);
-BoolType TypeSystem::commonBool = BoolType(1);
-VoidType TypeSystem::commonVoid = VoidType();
-IntType TypeSystem::commonConstInt = IntType(4, true);
-FloatType TypeSystem::commonConstFloat = FloatType(4, true);
-BoolType TypeSystem::commonConstBool = BoolType(1, true);
-*/
-IntType TypeSystem::commonConstInt = IntType(32, true);
 IntType TypeSystem::commonInt = IntType(32);
-IntType TypeSystem::commonBool = IntType(1); // ??
+IntType TypeSystem::commonBool = IntType(1);
 VoidType TypeSystem::commonVoid = VoidType();
 FloatType TypeSystem::commonFloat = FloatType(32);
+IntType TypeSystem::commonConstInt = IntType(32, true);
 FloatType TypeSystem::commonConstFloat = FloatType(32, true);
 BoolType TypeSystem::commonConstBool = BoolType(1, true);
 

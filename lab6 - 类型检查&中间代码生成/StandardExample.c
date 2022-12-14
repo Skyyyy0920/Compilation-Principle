@@ -1,6 +1,15 @@
-int a;
-int z = 1;
-int ss = 1 + 2 + 3;
+//test add
+int main(){
+    int a, b;
+    a = 10;
+    b = 1 + 2 + 3;
+    return a + b;
+}
+
+/*
+int a = + 1;
+int z = - 1;
+int ss = -2 ;
 
 int f(int x, int y){
     return 0;
@@ -9,7 +18,6 @@ int f(int x, int y){
 int main() {
     int b = 0;
     int i;
-    a = 0;
     i = 0;
     int j;
     j = f(b,i);
@@ -25,3 +33,4 @@ int main() {
     }
     return 1;
 }
+*/

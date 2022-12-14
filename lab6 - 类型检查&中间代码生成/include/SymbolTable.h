@@ -69,8 +69,8 @@ public:
     ConstantSymbolEntry(Type *type, int ivalue);
     ConstantSymbolEntry(Type *type, float fvalue);
     virtual ~ConstantSymbolEntry() {};
-    int getiValue() const{return ivalue;};
-    float getfValue() const{return fvalue;};
+    int getiValue() const{ return ivalue; };
+    float getfValue() const{ return fvalue; };
     std::string toStr();
 };
 

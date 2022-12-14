@@ -56,6 +56,7 @@ public:
     bool isUnaryExpr() const { return kind == UNARYEXPR; };
     virtual Type* getType() { return type; };
     virtual int getValue() { return -1; };
+    void genCode();
 };
 
 class UnaryExpr : public ExprNode  // 单目运算符

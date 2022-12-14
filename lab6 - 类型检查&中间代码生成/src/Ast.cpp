@@ -66,165 +66,20 @@ void Ast::genCode(Unit *unit)
     root->genCode();
 }
 
-void FunctionDef::genCode() {
-    Unit* unit = builder->getUnit();
-    Function* func = new Function(unit, se);
-    BasicBlock* entry = func->getEntry();
-    // set the insert point to the entry basicblock of this function.
-
-    builder->setInsertBB(entry);
-    if (decl)
-        decl->genCode();
-    if (stmt)
-        stmt->genCode();
-
-    // 生成控制流图
-    for(auto block = func->begin(); block != func->end(); block++){
-        // 获取该块的最后一条指令
-        Instruction* i = (*block)->begin();
-        Instruction* last = (*block)->rbegin();
-        // 从块中删除条件型语句
-        while (i != last){
-            if (i->isCond() || i->isUncond()){
-                (*block)->remove(i);
-            }
-            i = i->getNext();
-        }
-        
-        if (last->isCond()){
-            BasicBlock *truebranch, *falsebranch;
-            truebranch = dynamic_cast<CondBrInstruction*>(last)->getTrueBranch();
-            falsebranch = dynamic_cast<CondBrInstruction*>(last)->getFalseBranch();
-            
-            (*block)->addSucc(truebranch);
-            (*block)->addSucc(falsebranch);
-            truebranch->addPred(*block);
-            falsebranch->addPred(*block);
-        } 
-        else if (last->isUncond()){
-            BasicBlock* dst = dynamic_cast<UncondBrInstruction*>(last)->getBranch();
-            (*block)->addSucc(dst);
-            // 插入return
-            dst->addPred(*block);
-            // 无条件跳转的空块
-            if (dst->empty()){
-                if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::intType){
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
-                }
-                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::floatType) {
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), dst);
-                }
-                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType){
-                    new RetInstruction(nullptr, dst);
-                }
-            }
-        }
-        //没有显示返回或者跳转的语句 插入空返回
-        else if ((!last->isRet()) && ((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType) {
-                new RetInstruction(nullptr, *block);
-        } 
-    }
-    // 目前还没用
-    BasicBlock *exitBB = new BasicBlock(func);
-    func->setExit(exitBB);
-}
-
-/*
-void FunctionDef::genCode()
+void ExprNode::genCode()
 {
-    Unit *unit = builder->getUnit();
-    Function *func = new Function(unit, se); // se函数名符号表项
-    BasicBlock *entry = func->getEntry(); //返回入口基本块
-    // set the insert point to the entry basicblock of this function.
-    builder->setInsertBB(entry);
-
-    // ??不知道能不能过呀
-    decl->genCode();
-    stmt->genCode();
-
-    // 这里属于是构造控制流图，不知道注释掉能不能过
-    for (auto block = func->begin(); block != func->end(); block++){
-        // 获取第一条指令和最后一条指令
-        Instruction* first_inst = (*block)->begin();
-        Instruction* last_inst = (*block)->rbegin();
-        // 删除基本块中的条件跳转指令，应该就是基本块的最后一条指令，但是感觉可以不删??
-        while (first_inst != last_inst) {
-            if (first_inst->isCond() || first_inst->isUncond()) {
-                (*block)->remove(first_inst);
-            }
-            first_inst = first_inst->getNext();
-        }
-
-        // 插入true branch和false branch
-        if (last_inst->isCond()) {
-            BasicBlock *truebranch, *falsebranch;
-            truebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getTrueBranch();
-            falsebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getFalseBranch();
-            // 给当前block基本块设置后继block
-            (*block)->addSucc(truebranch);
-            (*block)->addSucc(falsebranch);
-            // 给true和false基本块设置前继block
-            truebranch->addPred(*block);
-            falsebranch->addPred(*block);
-        }
-        // 无条件跳转指令，基本块中无条件跳转指令为空就提示函数要ret返回了
-        else if (last_inst->isUncond()){
-            BasicBlock* to = dynamic_cast<UncondBrInstruction*>(last_inst)->getBranch();
-            (*block)->addSucc(to);
-            to->addPred(*block);
-            if(to->empty()){
-                // 获取函数的返回值类型构建最后一个exit基本块
-                if (dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::intType){
-                    Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(cur_func);
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), temp_block);
-                    cur_func->insertBlock(temp_block);
-                    cur_func->setExit(temp_block); // 设置基本块??
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), to);
-                }
-                else if(dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::floatType){
-                    Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(cur_func);
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), temp_block);
-                    cur_func->insertBlock(temp_block);
-                    cur_func->setExit(temp_block); // 设置基本块??
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), to);
-                }
-                // void类型
-                else{
-                    Function *cur_func = (*block)->getParent();
-                    BasicBlock *temp_block = new BasicBlock(cur_func);
-                    new RetInstruction(nullptr, temp_block);
-                    cur_func->insertBlock(temp_block);
-                    cur_func->setExit(temp_block); 
-                    new RetInstruction(nullptr, to);
-                }
-            }
-        }
-        // 如果既不是跳转指令也不是返回指令就补充返回指令，同void类型
-        else if (!last_inst->isRet()) {
-            if ((dynamic_cast<FunctionType*>(se->getType())->getReturnType()) == TypeSystem::voidType){
-                Function *cur_func = (*block)->getParent();
-                BasicBlock *temp_block = new BasicBlock(cur_func);
-                new RetInstruction(nullptr, temp_block);
-                cur_func->insertBlock(temp_block);
-                cur_func->setExit(temp_block);
-                new RetInstruction(nullptr, *block);
-            }
-        }
-    }
+    // do nothing
 }
-*/
 
-// 待测试
 void UnaryExpr::genCode()
 {
+    fprintf(stderr, "gencode %s\n", expr->getSymPtr()->toStr().c_str());
     // 获取当前的基本块
     expr->genCode();
-    if (op == NON){
+    if (op == NON) {
         BasicBlock* bb = builder->getInsertBB();
         Operand* src = expr->getOperand();
-        //如果not后面是一个i32 就要先和0比较大小 然后对于结果进行取反
+        // 如果not后面是一个i32 就要先和0比较大小 然后对结果进行取反
         if (expr->getType()->getSize() == 32) {
             Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel()));  
             new CmpInstruction(CmpInstruction::NE, temp, src, new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
@@ -232,7 +87,7 @@ void UnaryExpr::genCode()
         }
         new XorInstruction(dst, src, bb);
     } 
-    else if(op == ADD){
+    else if (op == ADD) {
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
@@ -248,7 +103,7 @@ void UnaryExpr::genCode()
         new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
     }
     //-x的情况下 就是用0-x 
-    else if (op == SUB){
+    else if (op == SUB) {
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
@@ -320,8 +175,7 @@ void BinaryExpr::genCode()
 {
     BasicBlock *bb = builder->getInsertBB();
     Function *func = bb->getParent();
-    if (op == AND)
-    {
+    if (op == AND) {
         BasicBlock *trueBB = new BasicBlock(func);  // if the result of lhs is true, jump to the trueBB.
         expr1->genCode();
         backPatch(expr1->trueList(), trueBB);
@@ -330,9 +184,7 @@ void BinaryExpr::genCode()
         true_list = expr2->trueList(); // Node节点给出的true list和false list
         false_list = merge(expr1->falseList(), expr2->falseList());
     }
-    else if(op == OR)
-    {
-        // Todo
+    else if (op == OR) {
         // 对于OR的逻辑预算而言，同为false才能跳转到false branch上
         BasicBlock* falseBB = new BasicBlock(func);
         expr1->genCode();
@@ -343,9 +195,7 @@ void BinaryExpr::genCode()
         false_list = expr2->falseList();
     }
     // 包含所有关系运算的二元表达式
-    else if(op >= LESS && op <= NOTEQUAL)
-    {
-        // Todo
+    else if(op >= LESS && op <= NOTEQUAL) {
         expr1->genCode();
         expr2->genCode();
         Operand *src1 = expr1->getOperand();
@@ -661,6 +511,156 @@ void AssignStmt::genCode()
     new StoreInstruction(addr, src, bb);
     // 看起来需要补充数组
 }
+
+void FunctionDef::genCode() {
+    Unit* unit = builder->getUnit();
+    Function* func = new Function(unit, se);
+    BasicBlock* entry = func->getEntry();
+    // set the insert point to the entry basicblock of this function.
+
+    builder->setInsertBB(entry);
+    if (decl)
+        decl->genCode();
+    if (stmt)
+        stmt->genCode();
+
+    // 生成控制流图
+    for(auto block = func->begin(); block != func->end(); block++){
+        // 获取该块的最后一条指令
+        Instruction* i = (*block)->begin();
+        Instruction* last = (*block)->rbegin();
+        // 从块中删除条件型语句
+        while (i != last){
+            if (i->isCond() || i->isUncond()){
+                (*block)->remove(i);
+            }
+            i = i->getNext();
+        }
+        
+        if (last->isCond()){
+            BasicBlock *truebranch, *falsebranch;
+            truebranch = dynamic_cast<CondBrInstruction*>(last)->getTrueBranch();
+            falsebranch = dynamic_cast<CondBrInstruction*>(last)->getFalseBranch();
+            
+            (*block)->addSucc(truebranch);
+            (*block)->addSucc(falsebranch);
+            truebranch->addPred(*block);
+            falsebranch->addPred(*block);
+        } 
+        else if (last->isUncond()){
+            BasicBlock* dst = dynamic_cast<UncondBrInstruction*>(last)->getBranch();
+            (*block)->addSucc(dst);
+            // 插入return
+            dst->addPred(*block);
+            // 无条件跳转的空块
+            if (dst->empty()){
+                if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::intType){
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
+                }
+                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::floatType) {
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), dst);
+                }
+                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType){
+                    new RetInstruction(nullptr, dst);
+                }
+            }
+        }
+        //没有显示返回或者跳转的语句 插入空返回
+        else if ((!last->isRet()) && ((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType) {
+                new RetInstruction(nullptr, *block);
+        } 
+    }
+    // 目前还没用
+    BasicBlock *exitBB = new BasicBlock(func);
+    func->setExit(exitBB);
+}
+
+/*
+void FunctionDef::genCode()
+{
+    Unit *unit = builder->getUnit();
+    Function *func = new Function(unit, se); // se函数名符号表项
+    BasicBlock *entry = func->getEntry(); //返回入口基本块
+    // set the insert point to the entry basicblock of this function.
+    builder->setInsertBB(entry);
+
+    // ??不知道能不能过呀
+    decl->genCode();
+    stmt->genCode();
+
+    // 这里属于是构造控制流图，不知道注释掉能不能过
+    for (auto block = func->begin(); block != func->end(); block++){
+        // 获取第一条指令和最后一条指令
+        Instruction* first_inst = (*block)->begin();
+        Instruction* last_inst = (*block)->rbegin();
+        // 删除基本块中的条件跳转指令，应该就是基本块的最后一条指令，但是感觉可以不删??
+        while (first_inst != last_inst) {
+            if (first_inst->isCond() || first_inst->isUncond()) {
+                (*block)->remove(first_inst);
+            }
+            first_inst = first_inst->getNext();
+        }
+
+        // 插入true branch和false branch
+        if (last_inst->isCond()) {
+            BasicBlock *truebranch, *falsebranch;
+            truebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getTrueBranch();
+            falsebranch = dynamic_cast<CondBrInstruction*>(last_inst)->getFalseBranch();
+            // 给当前block基本块设置后继block
+            (*block)->addSucc(truebranch);
+            (*block)->addSucc(falsebranch);
+            // 给true和false基本块设置前继block
+            truebranch->addPred(*block);
+            falsebranch->addPred(*block);
+        }
+        // 无条件跳转指令，基本块中无条件跳转指令为空就提示函数要ret返回了
+        else if (last_inst->isUncond()){
+            BasicBlock* to = dynamic_cast<UncondBrInstruction*>(last_inst)->getBranch();
+            (*block)->addSucc(to);
+            to->addPred(*block);
+            if(to->empty()){
+                // 获取函数的返回值类型构建最后一个exit基本块
+                if (dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::intType){
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), temp_block);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); // 设置基本块??
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), to);
+                }
+                else if(dynamic_cast<FunctionType*>(se->getType())->getReturnType() == TypeSystem::floatType){
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), temp_block);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); // 设置基本块??
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), to);
+                }
+                // void类型
+                else{
+                    Function *cur_func = (*block)->getParent();
+                    BasicBlock *temp_block = new BasicBlock(cur_func);
+                    new RetInstruction(nullptr, temp_block);
+                    cur_func->insertBlock(temp_block);
+                    cur_func->setExit(temp_block); 
+                    new RetInstruction(nullptr, to);
+                }
+            }
+        }
+        // 如果既不是跳转指令也不是返回指令就补充返回指令，同void类型
+        else if (!last_inst->isRet()) {
+            if ((dynamic_cast<FunctionType*>(se->getType())->getReturnType()) == TypeSystem::voidType){
+                Function *cur_func = (*block)->getParent();
+                BasicBlock *temp_block = new BasicBlock(cur_func);
+                new RetInstruction(nullptr, temp_block);
+                cur_func->insertBlock(temp_block);
+                cur_func->setExit(temp_block);
+                new RetInstruction(nullptr, *block);
+            }
+        }
+    }
+}
+*/
 
 // CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb = nullptr);
 void CallExpr::genCode()
@@ -1266,41 +1266,13 @@ ExprNode* ExprNode::copy() {
 }
 
 UnaryExpr::UnaryExpr(SymbolEntry* se, int op, ExprNode* expr) : ExprNode(se, UNARYEXPR), op(op), expr(expr) {
-    // 这里好像之前有一个检查的函数
-    if (op == UnaryExpr::NON) {
-        type = TypeSystem::intType;
-        // 主要是为了构建这个operand
-        dst = new Operand(se);
-        if (expr->isUnaryExpr()) {
-            UnaryExpr* Ue = (UnaryExpr*)expr;
-            if (Ue->getOp() == UnaryExpr::NON) {
-                if (Ue->getType() == TypeSystem::intType){
-                    Ue->setType(TypeSystem::boolType);
-                }
-            }
-        }
-    } 
-    else if (op == UnaryExpr::ADD) {
-        type = TypeSystem::intType;
-        dst = new Operand(se);
-        if (expr->isUnaryExpr()) {
-            UnaryExpr* Ue = (UnaryExpr*)expr;
-            if (Ue->getOp() == UnaryExpr::NON){
-                if (Ue->getType() == TypeSystem::intType){
-                    Ue->setType(TypeSystem::boolType);
-                }
-            }
-        }
-    }
-    else if (op == UnaryExpr::SUB) {
-        type = TypeSystem::intType;
-        dst = new Operand(se);
-        if (expr->isUnaryExpr()) {
-            UnaryExpr* ue = (UnaryExpr*)expr;
-            if (ue->getOp() == UnaryExpr::NON){
-                if (ue->getType() == TypeSystem::intType){
-                    ue->setType(TypeSystem::boolType);
-                }
+    this->type = TypeSystem::intType;
+    dst = new Operand(se);
+    if (expr->isUnaryExpr()) {
+        UnaryExpr* ue = (UnaryExpr*)expr;
+        if (ue->getOp() == UnaryExpr::NON) {
+            if (ue->getType() == TypeSystem::intType) {
+                ue->setType(TypeSystem::boolType);
             }
         }
     }
