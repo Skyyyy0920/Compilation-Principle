@@ -124,6 +124,9 @@ void FunctionDef::genCode() {
                 new RetInstruction(nullptr, *block);
         } 
     }
+    // 目前还没用
+    BasicBlock *exitBB = new BasicBlock(func);
+    func->setExit(exitBB);
 }
 
 /*
@@ -525,7 +528,7 @@ void BreakStmt::genCode()
 void WhileStmt::genCode()
 {
     Function *func;
-    BasicBlock *loop_bb, *end_bb , *cond_bb; // 条件语句块，循环块，结束跳转块
+    BasicBlock *loop_bb, *end_bb , *cond_bb;  // 条件语句块，循环块，结束跳转块
 
     BasicBlock *bb = builder->getInsertBB();
     func = builder->getInsertBB()->getParent();

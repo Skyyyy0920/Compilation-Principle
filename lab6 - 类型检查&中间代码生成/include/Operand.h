@@ -16,7 +16,7 @@ typedef std::vector<Instruction *>::iterator use_iterator;
 
 private:
     Instruction *def;                // The instruction where this operand is defined. 定义操作数
-    std::vector<Instruction *> uses; // Intructions that use this operand.
+    std::vector<Instruction*> uses; // Intructions that use this operand.
     SymbolEntry *se;                 // The symbol entry of this operand. 操作数的符号表项
 public:
     Operand(SymbolEntry*se) :se(se){def = nullptr;};

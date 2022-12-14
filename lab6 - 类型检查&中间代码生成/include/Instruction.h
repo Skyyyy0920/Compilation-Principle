@@ -9,6 +9,14 @@ class BasicBlock;
 
 class Instruction
 {
+protected:
+    unsigned instType; // 指令类型
+    unsigned opcode; // 操作码
+    Instruction *prev;
+    Instruction *next;
+    BasicBlock *parent;  // 所在的基本块
+    std::vector<Operand*> operands;  // 该条指令的操作数
+    enum {BINARY, COND, UNCOND, RET, LOAD, STORE, CMP, ALLOCA, CALL, XOR, ZEXT}; // 函数调用添加，可能还要添加类型转换
 public:
     Instruction(unsigned instType, BasicBlock *insert_bb = nullptr);
     virtual ~Instruction();
@@ -21,15 +29,7 @@ public:
     void setPrev(Instruction *);
     Instruction *getNext();
     Instruction *getPrev();
-    virtual void output() const = 0; // 虚基类
-protected:
-    unsigned instType; // 指令类型
-    unsigned opcode; // 操作码
-    Instruction *prev;
-    Instruction *next;
-    BasicBlock *parent; // 所在的基本块
-    std::vector<Operand*> operands; // 该条指令的操作数
-    enum {BINARY, COND, UNCOND, RET, LOAD, STORE, CMP, ALLOCA, CALL, XOR, ZEXT}; // 函数调用添加，可能还要添加类型转换
+    virtual void output() const = 0;  // 虚基类
 };
 
 // meaningless instruction, used as the head node of the instruction list.

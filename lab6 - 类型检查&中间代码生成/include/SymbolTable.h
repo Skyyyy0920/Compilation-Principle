@@ -86,6 +86,7 @@ private:
     int ivalue;  // 如果ID的定义为int则在此变量中存储
     float fvalue;
     Operand *addr;  // The address of the identifier.
+    int label;
 public:
     IdentifierSymbolEntry(Type *type, std::string name, int scope);
     virtual ~IdentifierSymbolEntry() {};
@@ -102,6 +103,7 @@ public:
     bool isGlobal() const { return scope == GLOBAL; };
     bool isParam() const { return scope == PARAM; };
     bool isLocal() const { return scope == LOCAL && scope > GLOBAL; }; // ??需要添加小于吗
+    int getLabel() const { return label; };
 };
 
 
@@ -131,7 +133,7 @@ public:
     TemporarySymbolEntry(Type *type, int label);
     virtual ~TemporarySymbolEntry() {};
     std::string toStr();
-    // You can add any function you need here.
+    int getLabel() const { return label; };
 };
 
 // symbol table managing identifier symbol entries
@@ -149,9 +151,9 @@ public:
     SymbolEntry* lookup(std::string name);
     SymbolEntry* searchFunc();
     SymbolEntry* checkRepeat(std::string name);
-    SymbolTable* getPrev() {return prev;};
-    int getLevel() {return level;};
-    static int getLabel() {return counter++;};
+    SymbolTable* getPrev() { return prev; };
+    int getLevel() { return level; };
+    static int getLabel() { return counter++; };
 };
 
 extern SymbolTable *identifiers;

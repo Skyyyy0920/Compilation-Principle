@@ -68,6 +68,6 @@ std::string FunctionType::toStr()
 std::string PointerType::toStr()
 {
     std::ostringstream buffer;
-    buffer << valueType->toStr(); // << "*";
+    buffer << valueType->toStr() << "*";
     return buffer.str();
 }
