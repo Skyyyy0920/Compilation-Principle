@@ -87,7 +87,7 @@ class PointerType : public Type
 private:
     Type *valueType;
 public:
-    PointerType(Type* valueType) : Type(Type::PTR) {this->valueType = valueType;};
+    PointerType(Type* valueType) : Type(Type::PTR) { this->valueType = valueType; };
     std::string toStr();
     Type* getReturnType() { return nullptr; };
 };

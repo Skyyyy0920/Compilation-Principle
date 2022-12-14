@@ -61,9 +61,9 @@ std::string ConstantSymbolEntry::toStr()
     }
 }
 
-IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int scope) : SymbolEntry(type, SymbolEntry::VARIABLE), name(name)
+IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int scope) : SymbolEntry(type, SymbolEntry::VARIABLE), name(name), scope(scope)
 {
-    this->scope = scope;
+    this->label = -1;
 }
 
 // 这里主要实现对于符号表中的数值对应关系
@@ -77,13 +77,16 @@ void IdentifierSymbolEntry::setfValue(float fvalue){
 
 std::string IdentifierSymbolEntry::toStr()
 {
-    // TODO
-    return name;
-}
-
-TemporarySymbolEntry::TemporarySymbolEntry(Type *type, int label) : SymbolEntry(type, SymbolEntry::TEMPORARY)
-{
-    this->label = label;
+    std::ostringstream buffer;
+    if (label < 0) {  // label < 0, 要么是全局变量要么是函数定义
+        // if (type->isFunc()) buffer << '@';
+        buffer << '@';
+        buffer << name;
+    }
+    else {
+        buffer << "%t" << label;
+    }
+    return buffer.str();
 }
 
 std::string TemporarySymbolEntry::toStr()

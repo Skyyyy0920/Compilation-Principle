@@ -3,18 +3,6 @@ int z = 1;
 int ss = 1 + 2 + 3;
 
 int main() {
-    int b = 0;
-    int i;
-    i = 0;
-    int ss = 1 + 2 + 3;
-    while(i < 100){
-        i = i + 1;
-        if(i < 50){
-            continue;
-        }
-        else{
-            break;
-        }
-    }
+    a = 0;
     return 1;
 }

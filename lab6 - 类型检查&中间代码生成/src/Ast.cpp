@@ -908,14 +908,10 @@ void FunctionDef::typeCheck()
     this->stmt->typeCheck();  // 检查函数体
     if (!this->stmt->getHaveRetStmt() && se->getType()->toStr() != "void") {
         fprintf(stderr, "函数 %s 缺少 return 语句\n", name.c_str());
-    } 
-
-    if (identifiers->lookup(name) == nullptr) {  // 检查未定义问题
-        fprintf(stderr,"函数 %s 未被定义\n", name.c_str());
     }
 }
 
-void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
+void CallExpr::typeCheck()
 {
     // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
     bool flag = 0;
@@ -932,12 +928,11 @@ void CallExpr::typeCheck()  // 会在CallExpr构造函数中被调用
         if (rCount == pCount) {
             flag = 1;
             this->type = ((FunctionType*)func->getType())->getReturnType();
-            // ------------------------------- 暂时不知道啥用 -----------------------------
-            /*if (this->type != TypeSystem::voidType) {
+            // TODO
+            if (this->type != TypeSystem::voidType) {
                 SymbolEntry* se = new TemporarySymbolEntry(this->type, SymbolTable::getLabel());
                 dst = new Operand(se);
-            }*/
-            // ---------------------------------------------------------------------------
+            }
             ExprNode* fParams = this->param;  // 形参
             // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
             for (auto it : ((FunctionType*)func->getType())->getParams()) {

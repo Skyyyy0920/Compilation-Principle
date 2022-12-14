@@ -130,7 +130,7 @@ class TemporarySymbolEntry : public SymbolEntry
 private:
     int label;
 public:
-    TemporarySymbolEntry(Type *type, int label);
+    TemporarySymbolEntry(Type *type, int label) : SymbolEntry(type, SymbolEntry::TEMPORARY), label(label) {};
     virtual ~TemporarySymbolEntry() {};
     std::string toStr();
     int getLabel() const { return label; };
