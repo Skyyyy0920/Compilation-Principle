@@ -492,8 +492,6 @@ FuncFParam  // 函数形参
 
         ((IdentifierSymbolEntry*)se)->setLabel();
         ((IdentifierSymbolEntry*)se)->setAddr(new Operand(se));
-
-        fprintf(stderr, "%s %d\n", se->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getLabel());
         
         $$ = new DeclStmt(new Id(se));
         delete []$2;

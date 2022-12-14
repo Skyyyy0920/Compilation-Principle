@@ -14,7 +14,6 @@
 中间代码输出完成
 ==========================================================
 
-test/level1-1/024_mod.ll:5:11: error: use of undefined value '%t3'
-  ret i32 %t3
-          ^
-1 error generated.
+warning: overriding the module target triple with x86_64-pc-linux-gnu [-Woverride-module]
+1 warning generated.
+TOTAL: 0H-0M-0S-0us

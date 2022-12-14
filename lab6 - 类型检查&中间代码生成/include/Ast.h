@@ -42,14 +42,18 @@ public:
 class ExprNode : public Node
 {
 protected:
+    enum { EXPR, INITVALUELISTEXPR, IMPLICTCASTEXPR, UNARYEXPR };
+    int kind;
     SymbolEntry *symbolEntry;
     Operand *dst;   // The result of the subtree is stored into dst.子树的结果存储在dst之中
     Type* type;
 public:
-    ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){ dst = nullptr; type = nullptr; };
+    ExprNode(SymbolEntry* symbolEntry, int kind = EXPR) : kind(kind), symbolEntry(symbolEntry){}; 
+    // { dst = nullptr; type = nullptr; };
     Operand* getOperand() {return dst;};
     SymbolEntry* getSymPtr() {return symbolEntry;};
     ExprNode* copy();
+    bool isUnaryExpr() const { return kind == UNARYEXPR; };
     virtual Type* getType() { return type; };
     virtual int getValue() { return -1; };
 };
@@ -61,10 +65,12 @@ private:
     ExprNode *expr;
 public:
     enum {ADD, SUB, NON};  // + - !
-    UnaryExpr(SymbolEntry *se, int op, ExprNode*expr) : ExprNode(se), op(op), expr(expr){};
+    UnaryExpr(SymbolEntry *se, int op, ExprNode*expr);
     void output(int level);
     void typeCheck();
     void genCode();
+    int getOp() const { return op; };
+    void setType(Type* type) { this->type = type; };
     int getValue();
 };
 

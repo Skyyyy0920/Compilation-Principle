@@ -220,39 +220,49 @@ void FunctionDef::genCode()
 void UnaryExpr::genCode()
 {
     // 获取当前的基本块
-    BasicBlock *bb = builder->getInsertBB();
     expr->genCode();
-    Operand* src = expr->getOperand();
-
-    if(op == NON){
-        if(!src->getType()->isBool()){
-            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel()));
+    if (op == NON){
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src = expr->getOperand();
+        //如果not后面是一个i32 就要先和0比较大小 然后对于结果进行取反
+        if (expr->getType()->getSize() == 32) {
+            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel()));  
             new CmpInstruction(CmpInstruction::NE, temp, src, new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
-            // 为了xor指令的实现，将src指令切换为bool类型
             src = temp;
         }
         new XorInstruction(dst, src, bb);
-    }
+    } 
     else if(op == ADD){
-        Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
-        Operand* src2 = expr->getOperand();
-        if(src->getType()->isBool()){
-            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
-            new ZextInstruction(temp, src2, bb);
-            src2 = temp;
+        Operand* src2;
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
+        // i1转换为i32
+        // 本来还想用bool类型判断呢
+        if (expr->getType()->getSize() == 1){
+            src2 = new Operand(new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel()));
+            new ZextInstruction(src2, expr->getOperand(), bb);
+        } 
+        else{
+            src2 = expr->getOperand();
         }
         new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
     }
-    else if(op == SUB){
-        Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
-        Operand* src2 = expr->getOperand();
-        if(src->getType()->isBool()){
-            Operand* temp = new Operand(new TemporarySymbolEntry(TypeSystem::intType,SymbolTable::getLabel()));
-            new ZextInstruction(temp, src2, bb);
-            src2 = temp;
+    //-x的情况下 就是用0-x 
+    else if (op == SUB){
+        Operand* src2;
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
+        //i1转换为i32
+        if (expr->getType()->getSize() == 1){
+            src2 = new Operand(new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel()));
+            new ZextInstruction(src2, expr->getOperand(), bb);
+        } 
+        else{
+            src2 = expr->getOperand();
         }
-        new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+        new BinaryInstruction(BinaryInstruction::SUB, dst, src1, src2, bb);
     }
+
 
     // 最好还是别用switch，有变量定义就用不了switch
     /*
@@ -388,7 +398,7 @@ void BinaryExpr::genCode()
         */
         
     }
-    else if(op >= ADD && op <= SUB)
+    else if(op >= ADD && op <= MOD)
     {
         expr1->genCode();
         expr2->genCode();
@@ -1253,6 +1263,47 @@ ExprNode* ExprNode::copy() {
         ret->setNext(temp->copy());
     }
     return ret;
+}
+
+UnaryExpr::UnaryExpr(SymbolEntry* se, int op, ExprNode* expr) : ExprNode(se, UNARYEXPR), op(op), expr(expr) {
+    // 这里好像之前有一个检查的函数
+    if (op == UnaryExpr::NON) {
+        type = TypeSystem::intType;
+        // 主要是为了构建这个operand
+        dst = new Operand(se);
+        if (expr->isUnaryExpr()) {
+            UnaryExpr* Ue = (UnaryExpr*)expr;
+            if (Ue->getOp() == UnaryExpr::NON) {
+                if (Ue->getType() == TypeSystem::intType){
+                    Ue->setType(TypeSystem::boolType);
+                }
+            }
+        }
+    } 
+    else if (op == UnaryExpr::ADD) {
+        type = TypeSystem::intType;
+        dst = new Operand(se);
+        if (expr->isUnaryExpr()) {
+            UnaryExpr* Ue = (UnaryExpr*)expr;
+            if (Ue->getOp() == UnaryExpr::NON){
+                if (Ue->getType() == TypeSystem::intType){
+                    Ue->setType(TypeSystem::boolType);
+                }
+            }
+        }
+    }
+    else if (op == UnaryExpr::SUB) {
+        type = TypeSystem::intType;
+        dst = new Operand(se);
+        if (expr->isUnaryExpr()) {
+            UnaryExpr* ue = (UnaryExpr*)expr;
+            if (ue->getOp() == UnaryExpr::NON){
+                if (ue->getType() == TypeSystem::intType){
+                    ue->setType(TypeSystem::boolType);
+                }
+            }
+        }
+    }
 }
 
 int UnaryExpr::getValue()

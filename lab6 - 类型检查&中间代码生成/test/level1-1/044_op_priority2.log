@@ -14,7 +14,6 @@
 中间代码输出完成
 ==========================================================
 
-test/level1-1/044_op_priority2.ll:11:11: error: use of undefined value '%t14'
-  ret i32 %t14
-          ^
-1 error generated.
+warning: overriding the module target triple with x86_64-pc-linux-gnu [-Woverride-module]
+1 warning generated.
+TOTAL: 0H-0M-0S-0us

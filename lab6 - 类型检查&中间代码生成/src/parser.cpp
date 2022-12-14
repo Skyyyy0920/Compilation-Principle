@@ -595,7 +595,7 @@ static const yytype_int16 yyrline[] =
      274,   279,   284,   289,   296,   298,   303,   310,   312,   319,
      321,   328,   333,   337,   344,   346,   350,   353,   357,   361,
      369,   388,   394,   398,   403,   407,   434,   438,   442,   445,
-     442,   472,   477,   481,   487,   504,   506,   511,   517
+     442,   472,   477,   481,   487,   502,   504,   509,   515
 };
 #endif
 
@@ -1986,46 +1986,44 @@ yyreduce:
 
         ((IdentifierSymbolEntry*)se)->setLabel();
         ((IdentifierSymbolEntry*)se)->setAddr(new Operand(se));
-
-        fprintf(stderr, "%s %d\n", se->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getLabel());
         
         (yyval.stmttype) = new DeclStmt(new Id(se));
         delete [](yyvsp[0].strtype);
     }
-#line 1996 "src/parser.cpp"
+#line 1994 "src/parser.cpp"
     break;
 
   case 85: /* FuncRParams: FuncRParam  */
-#line 504 "src/parser.y"
+#line 502 "src/parser.y"
                {(yyval.exprtype) = (yyvsp[0].exprtype);}
-#line 2002 "src/parser.cpp"
+#line 2000 "src/parser.cpp"
     break;
 
   case 86: /* FuncRParams: FuncRParams COMMA FuncRParam  */
-#line 506 "src/parser.y"
+#line 504 "src/parser.y"
                                  {
         (yyval.exprtype) = (yyvsp[-2].exprtype);
         (yyval.exprtype)->setNext((yyvsp[0].exprtype));
     }
-#line 2011 "src/parser.cpp"
+#line 2009 "src/parser.cpp"
     break;
 
   case 87: /* FuncRParams: %empty  */
-#line 511 "src/parser.y"
+#line 509 "src/parser.y"
           {
         (yyval.exprtype) = nullptr;
     }
-#line 2019 "src/parser.cpp"
+#line 2017 "src/parser.cpp"
     break;
 
   case 88: /* FuncRParam: Exp  */
-#line 517 "src/parser.y"
+#line 515 "src/parser.y"
         {(yyval.exprtype) = (yyvsp[0].exprtype);}
-#line 2025 "src/parser.cpp"
+#line 2023 "src/parser.cpp"
     break;
 
 
-#line 2029 "src/parser.cpp"
+#line 2027 "src/parser.cpp"
 
       default: break;
     }
@@ -2218,7 +2216,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 519 "src/parser.y"
+#line 517 "src/parser.y"
 
 
 int yyerror(char const* message)

@@ -34,7 +34,7 @@ std::string IntType::toStr()
         buffer << "i";
     else
         buffer << "i";
-    buffer << size;
+    buffer << this->getSize();
     return buffer.str();
 }
 

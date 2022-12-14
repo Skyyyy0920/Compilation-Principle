@@ -8,11 +8,12 @@
 class Type
 {
 private:
-    int kind;   
+    int kind;
+    int size;   
 protected:
     enum {INT, VOID, FUNC, FLOAT, PTR, BOOL};
 public:
-    Type(int kind) : kind(kind) {};
+    Type(int kind, long long size = 0) : kind(kind), size(size) {};
     virtual ~Type() {};
     virtual std::string toStr() = 0;
     bool isInt() const {return kind == INT;};
@@ -20,6 +21,7 @@ public:
     bool isFunc() const {return kind == FUNC;};
     bool isFloat() const {return kind == FLOAT;};
     bool isBool() const {return kind == BOOL;};
+    int getSize() const { return size; };
 
     virtual Type* getReturnType() = 0;  // 其实这个函数只在funcType中使用，但是由于C++的继承问题，不设置成虚基类没法用
     // 后续: 太菜了，不需要再写什么虚函数，强制类型转换就行了！！！不过这里先不改了，做个警示
@@ -28,10 +30,10 @@ public:
 class IntType : public Type
 {
 private:
-    int size;
+    // int size;
     bool type_constant;
 public:
-    IntType(int size, bool type_constant = false) : Type(Type::INT), size(size), type_constant(type_constant){};
+    IntType(int size, bool type_constant = false) : Type(Type::INT, size), type_constant(type_constant){};
     bool is_type_Const() const { return type_constant; };
     std::string toStr();
     Type* getReturnType() { return nullptr; };
@@ -41,10 +43,10 @@ public:
 class FloatType : public Type
 {
 private:
-    int size;
+    // int size;
     bool type_constant;
 public:
-    FloatType(int size, bool type_constant = false) : Type(Type::FLOAT), size(size), type_constant(type_constant){};
+    FloatType(int size, bool type_constant = false) : Type(Type::FLOAT, size), type_constant(type_constant){};
     bool is_type_Const() const { return type_constant; };
     std::string toStr();
     Type* getReturnType() { return nullptr; };
@@ -61,10 +63,10 @@ public:
 class BoolType : public Type
 {
 private:
-    int size;
+    // int size;
     bool type_constant;
 public:
-    BoolType(int size, bool type_constant = false) : Type(Type::BOOL), size(size), type_constant(type_constant){};
+    BoolType(int size, bool type_constant = false) : Type(Type::BOOL, size), type_constant(type_constant){};
     bool is_type_Const() const { return type_constant; };
     std::string toStr();
     Type* getReturnType() { return nullptr; };
