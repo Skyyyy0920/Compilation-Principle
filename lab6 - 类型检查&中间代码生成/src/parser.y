@@ -371,14 +371,13 @@ VarDef
         se = new IdentifierSymbolEntry(declType, $1, identifiers->getLevel());
         identifiers->install($1, se);
         
-        /* 这里展示的也是对expr node的属性的计算，这些node的值可以是float类型的，因为最后会进行int和float的判断
+        // 这里展示的也是对expr node的属性的计算，这些node的值可以是float类型的，因为最后会进行int和float的判断
         if(declType->isFloat()){
-            ((IdentifierSymbolEntry*)se)->setfValue($3->getvalue()); 
+            ((IdentifierSymbolEntry*)se)->setfValue($3->getValue()); 
         }
         if(declType->isInt()){
-            ((IdentifierSymbolEntry*)se)->setiValue($3->getvalue()); 
+            ((IdentifierSymbolEntry*)se)->setiValue($3->getValue()); 
         }
-        */
 
         $$ = new DeclStmt(new Id(se), $3);
         delete []$1;
@@ -418,14 +417,13 @@ ConstDef
         identifiers->install($1, se);
         
         // 进行类型的判断选择赋值，符号表之中并没有存储任何的数值，包括const和var都得补充
-        /* 这里需要注意的是需要补充对expr node的属性的值的计算
+        // 这里需要注意的是需要补充对expr node的属性的值的计算
         if(declType->isFloat()){
-            ((IdentifierSymbolEntry*)se)->setfValue($3->getvalue()); 
+            ((IdentifierSymbolEntry*)se)->setfValue($3->getValue()); 
         }
         if(declType->isInt()){
-            ((IdentifierSymbolEntry*)se)->setiValue($3->getvalue()); 
+            ((IdentifierSymbolEntry*)se)->setiValue($3->getValue()); 
         }
-        */
         
         $$ = new DeclStmt(new Id(se), $3);
         delete []$1;

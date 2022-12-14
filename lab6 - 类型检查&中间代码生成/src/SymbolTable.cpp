@@ -77,6 +77,7 @@ void IdentifierSymbolEntry::setfValue(float fvalue){
 
 std::string IdentifierSymbolEntry::toStr()
 {
+    // TODO
     return name;
 }
 
@@ -88,7 +89,7 @@ TemporarySymbolEntry::TemporarySymbolEntry(Type *type, int label) : SymbolEntry(
 std::string TemporarySymbolEntry::toStr()
 {
     std::ostringstream buffer;
-    buffer << "t" << label;
+    buffer << "%t" << label;
     return buffer.str();
 }
 
