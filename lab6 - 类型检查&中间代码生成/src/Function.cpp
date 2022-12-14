@@ -31,7 +31,23 @@ void Function::output() const
 {
     FunctionType* funcType = dynamic_cast<FunctionType*>(sym_ptr->getType()); // 父类转换成子类，这块儿一定是函数的ID
     Type *retType = funcType->getReturnType();
-    fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str());
+    // 这里要输出形参
+    std::vector<SymbolEntry*> params = funcType->getParams();
+    // 如果为空
+    if (!params.size()){
+        fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str());
+    }
+    else {
+        fprintf(yyout, "define %s %s(", retType->toStr().c_str(), sym_ptr->toStr().c_str());
+        for (long unsigned int i = 0; i < params.size(); i++) {
+            if (i > 0){
+                fprintf(yyout, ", ");
+            }
+            fprintf(yyout, "%s %s", params[i]->getType()->toStr().c_str(), params[i]->toStr().c_str());
+        }
+        fprintf(yyout, ") {\n");
+    }
+    // fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str());
     std::set<BasicBlock *> v;
     std::list<BasicBlock *> q;
     q.push_back(entry);

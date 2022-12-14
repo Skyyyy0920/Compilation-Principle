@@ -79,7 +79,6 @@ std::string IdentifierSymbolEntry::toStr()
 {
     std::ostringstream buffer;
     if (label < 0) {  // label < 0, 要么是全局变量要么是函数定义
-        // if (type->isFunc()) buffer << '@';
         buffer << '@';
         buffer << name;
     }

@@ -595,7 +595,7 @@ static const yytype_int16 yyrline[] =
      274,   279,   284,   289,   296,   298,   303,   310,   312,   319,
      321,   328,   333,   337,   344,   346,   350,   353,   357,   361,
      369,   388,   394,   398,   403,   407,   434,   438,   442,   445,
-     442,   472,   477,   481,   487,   498,   500,   505,   511
+     442,   472,   477,   481,   487,   504,   506,   511,   517
 };
 #endif
 
@@ -1983,43 +1983,49 @@ yyreduce:
         // se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel(), paramNo++);
         se = new IdentifierSymbolEntry((yyvsp[-1].type), (yyvsp[0].strtype), identifiers->getLevel());
         identifiers->install((yyvsp[0].strtype), se);  // 形参存入当前函数的符号表
+
+        ((IdentifierSymbolEntry*)se)->setLabel();
+        ((IdentifierSymbolEntry*)se)->setAddr(new Operand(se));
+
+        fprintf(stderr, "%s %d\n", se->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getLabel());
+        
         (yyval.stmttype) = new DeclStmt(new Id(se));
         delete [](yyvsp[0].strtype);
     }
-#line 1990 "src/parser.cpp"
-    break;
-
-  case 85: /* FuncRParams: FuncRParam  */
-#line 498 "src/parser.y"
-               {(yyval.exprtype) = (yyvsp[0].exprtype);}
 #line 1996 "src/parser.cpp"
     break;
 
+  case 85: /* FuncRParams: FuncRParam  */
+#line 504 "src/parser.y"
+               {(yyval.exprtype) = (yyvsp[0].exprtype);}
+#line 2002 "src/parser.cpp"
+    break;
+
   case 86: /* FuncRParams: FuncRParams COMMA FuncRParam  */
-#line 500 "src/parser.y"
+#line 506 "src/parser.y"
                                  {
         (yyval.exprtype) = (yyvsp[-2].exprtype);
         (yyval.exprtype)->setNext((yyvsp[0].exprtype));
     }
-#line 2005 "src/parser.cpp"
+#line 2011 "src/parser.cpp"
     break;
 
   case 87: /* FuncRParams: %empty  */
-#line 505 "src/parser.y"
+#line 511 "src/parser.y"
           {
         (yyval.exprtype) = nullptr;
     }
-#line 2013 "src/parser.cpp"
-    break;
-
-  case 88: /* FuncRParam: Exp  */
-#line 511 "src/parser.y"
-        {(yyval.exprtype) = (yyvsp[0].exprtype);}
 #line 2019 "src/parser.cpp"
     break;
 
+  case 88: /* FuncRParam: Exp  */
+#line 517 "src/parser.y"
+        {(yyval.exprtype) = (yyvsp[0].exprtype);}
+#line 2025 "src/parser.cpp"
+    break;
 
-#line 2023 "src/parser.cpp"
+
+#line 2029 "src/parser.cpp"
 
       default: break;
     }
@@ -2212,7 +2218,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 513 "src/parser.y"
+#line 519 "src/parser.y"
 
 
 int yyerror(char const* message)

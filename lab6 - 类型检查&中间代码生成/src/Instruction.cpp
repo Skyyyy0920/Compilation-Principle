@@ -412,10 +412,10 @@ CallInstruction::~CallInstruction(){
 
 void CallInstruction::output() const {
     if (operands[0]){
-        fprintf(yyout, "%s = ", operands[0]->toStr().c_str());
+        fprintf(yyout, "  %s = ", operands[0]->toStr().c_str());
     }
     FunctionType* type = (FunctionType*)(func->getType());
-    fprintf(yyout, "  call %s %s(", type->getReturnType()->toStr().c_str(), func->toStr().c_str());
+    fprintf(yyout, "call %s %s(", type->getReturnType()->toStr().c_str(), func->toStr().c_str());
     
     // 输出函数参数，输出operand vector中的参数
     for (long unsigned int i = 1; i < operands.size(); i++) {

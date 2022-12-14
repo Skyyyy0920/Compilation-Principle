@@ -31,6 +31,27 @@ public:
     SymbolEntry* getNext() { return next; }
 };
 
+// symbol table managing identifier symbol entries
+class SymbolTable
+{
+private:
+    std::map<std::string, SymbolEntry*> symbolTable;
+    SymbolTable *prev;
+    int level;
+    static int counter;
+public:
+    SymbolTable();
+    SymbolTable(SymbolTable *prev);
+    bool install(std::string name, SymbolEntry* entry);
+    SymbolEntry* lookup(std::string name);
+    SymbolEntry* searchFunc();
+    SymbolEntry* checkRepeat(std::string name);
+    SymbolTable* getPrev() { return prev; };
+    int getLevel() { return level; };
+    static int getLabel() { return counter++; };
+};
+extern SymbolTable *identifiers;
+extern SymbolTable *globals;
 
 /*  
     Symbol entry for literal constant. Example:
@@ -104,6 +125,7 @@ public:
     bool isParam() const { return scope == PARAM; };
     bool isLocal() const { return scope == LOCAL && scope > GLOBAL; }; // ??需要添加小于吗
     int getLabel() const { return label; };
+    void setLabel() { this->label = SymbolTable::getLabel(); };
 };
 
 
@@ -135,28 +157,5 @@ public:
     std::string toStr();
     int getLabel() const { return label; };
 };
-
-// symbol table managing identifier symbol entries
-class SymbolTable
-{
-private:
-    std::map<std::string, SymbolEntry*> symbolTable;
-    SymbolTable *prev;
-    int level;
-    static int counter;
-public:
-    SymbolTable();
-    SymbolTable(SymbolTable *prev);
-    bool install(std::string name, SymbolEntry* entry);
-    SymbolEntry* lookup(std::string name);
-    SymbolEntry* searchFunc();
-    SymbolEntry* checkRepeat(std::string name);
-    SymbolTable* getPrev() { return prev; };
-    int getLevel() { return level; };
-    static int getLabel() { return counter++; };
-};
-
-extern SymbolTable *identifiers;
-extern SymbolTable *globals;
 
 #endif

@@ -13,6 +13,7 @@ class Unit
 private:
     std::vector<Function *> func_list; // unit编译单元对于func函数使用vector可以保持顺序
     std::vector<SymbolEntry*> global_list;
+    std::vector<SymbolEntry*> declare_list;
 public:
     Unit() = default;
     ~Unit() ;

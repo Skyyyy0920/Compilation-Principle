@@ -489,6 +489,12 @@ FuncFParam  // 函数形参
         // se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel(), paramNo++);
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);  // 形参存入当前函数的符号表
+
+        ((IdentifierSymbolEntry*)se)->setLabel();
+        ((IdentifierSymbolEntry*)se)->setAddr(new Operand(se));
+
+        fprintf(stderr, "%s %d\n", se->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getLabel());
+        
         $$ = new DeclStmt(new Id(se));
         delete []$2;
     }
