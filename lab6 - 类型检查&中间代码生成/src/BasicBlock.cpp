@@ -16,31 +16,33 @@ void BasicBlock::insertBack(Instruction* inst) {
 
 // insert the instruction dst before src.
 void BasicBlock::insertBefore(Instruction* dst, Instruction* src) {
-    // Todo
     src->getPrev()->setNext(dst);
     dst->setPrev(src->getPrev());
-
     dst->setNext(src);
     src->setPrev(dst);
 
-    dst->setParent(this);
+    dst->setParent(this);  // 设置这个新插入的指令的parent为当前基本块，类似于func与bb的关系
 }
 
 // remove the instruction from intruction list.
 void BasicBlock::remove(Instruction* inst) {
-    inst->getPrev()->setNext(inst->getNext());
+    inst->getPrev()->setNext(inst->getNext());  // 前一个指针的后向节点
     inst->getNext()->setPrev(inst->getPrev());
 }
 
 void BasicBlock::output() const {
     fprintf(yyout, "B%d:", no);
 
+    // 打印前继基本块
     if (!pred.empty()) {
         fprintf(yyout, "%*c; preds = %%B%d", 32, '\t', pred[0]->getNo());
-        for (auto i = pred.begin() + 1; i != pred.end(); i++)
+        for (auto i = pred.begin() + 1; i != pred.end(); i++) {
             fprintf(yyout, ", %%B%d", (*i)->getNo());
+        }
     }
     fprintf(yyout, "\n");
+
+    // 打印所有的指令
     for (auto i = head->getNext(); i != head; i = i->getNext())
         i->output();
 }
@@ -62,8 +64,7 @@ void BasicBlock::addPred(BasicBlock* bb) {
 void BasicBlock::removePred(BasicBlock* bb) {
     pred.erase(std::find(pred.begin(), pred.end(), bb));
 }
-void BasicBlock::genMachineCode(AsmBuilder* builder) 
-{
+void BasicBlock::genMachineCode(AsmBuilder* builder) {
     auto cur_func = builder->getFunction();
     auto cur_block = new MachineBlock(cur_func, no);
     builder->setBlock(cur_block);
@@ -74,29 +75,28 @@ void BasicBlock::genMachineCode(AsmBuilder* builder)
     cur_func->InsertBlock(cur_block);
 }
 
-BasicBlock::BasicBlock(Function *f)
-{
-    this->no = SymbolTable::getLabel();
-    f->insertBlock(this);
+BasicBlock::BasicBlock(Function *f) {
+    this->no = SymbolTable::getLabel();  // return counter++ counter初始化为0
+    f->insertBlock(this);  // func中的block list插入push back
     parent = f;
-    head = new DummyInstruction();
+    head = new DummyInstruction();  // 头部初始指令，双向链表头，啥都不干
     head->setParent(this);
 }
 
-BasicBlock::~BasicBlock()
-{
+BasicBlock::~BasicBlock() {
     Instruction *inst;
     inst = head->getNext();
-    while (inst != head)
-    {
+    while (inst != head) {
         Instruction *t;
         t = inst;
         inst = inst->getNext();
         delete t;
     }
-    for(auto &bb:pred)
+    for (auto &bb:pred) {
         bb->removeSucc(this);
-    for(auto &bb:succ)
+    }
+    for (auto &bb:succ) {
         bb->removePred(this);
-    parent->remove(this);
+    }
+    parent->remove(this);  // func中删除这个bb
 }

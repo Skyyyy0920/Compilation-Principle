@@ -1690,9 +1690,44 @@ CallExpr::CallExpr(SymbolEntry* se, ExprNode* param) : ExprNode(se), param(param
     }
 }
 
+ImplictCastExpr::ImplictCastExpr(ExprNode* expr) : ExprNode(nullptr, IMPLICTCASTEXPR), expr(expr) {
+    type = TypeSystem::boolType;
+    dst = new Operand(new TemporarySymbolEntry(type, SymbolTable::getLabel()));
+}
+
+DeclStmt::DeclStmt(Id* id, ExprNode* expr) : id(id) {
+    if (expr) {
+        this->expr = expr;
+        if (expr->isInitValueListExpr()) {
+            ((InitValueListExpr*)(this->expr))->fill();
+        }
+    }
+}
+
+IfStmt::IfStmt(ExprNode* cond, StmtNode* thenStmt) : cond(cond), thenStmt(thenStmt) {
+    if (cond->getType()->isInt() && cond->getType()->getSize() == 32) {
+        ImplictCastExpr* temp = new ImplictCastExpr(cond);
+        this->cond = temp;
+    }
+}
+
+IfElseStmt::IfElseStmt(ExprNode* cond, StmtNode* thenStmt, StmtNode* elseStmt) : cond(cond), thenStmt(thenStmt), elseStmt(elseStmt) {
+    if (cond->getType()->isInt() && cond->getType()->getSize() == 32) {
+        ImplictCastExpr* temp = new ImplictCastExpr(cond);
+        this->cond = temp;
+    }
+}
+
+WhileStmt::WhileStmt(ExprNode* cond, StmtNode* stmt) : cond(cond), stmt(stmt) {
+    if (cond->getType()->isInt() && cond->getType()->getSize() == 32) {
+        ImplictCastExpr* temp = new ImplictCastExpr(cond);
+        this->cond = temp;
+    }
+}
+
 AssignStmt::AssignStmt(ExprNode* lval, ExprNode* expr) : lval(lval), expr(expr) {
     Type* type = ((Id*)lval)->getType();
-    SymbolEntry* se = lval->getSymbolEntry();
+    // SymbolEntry* se = lval->getSymbolEntry();
     bool flag = true;
     if (type->isInt()) {
         if (((IntType*)type)->isConst()) {
@@ -1706,6 +1741,21 @@ AssignStmt::AssignStmt(ExprNode* lval, ExprNode* expr) : lval(lval), expr(expr) 
     }
     if (flag && !expr->getType()->isInt()) {
         // fprintf(stderr, "cannot initialize a variable of type \'int\' with an rvalue of type \'%s\'\n", expr->getType()->toStr().c_str());
+    }
+}
+
+Id::Id(SymbolEntry* se, ExprNode* arrIdx) : ExprNode(se), arrIdx(arrIdx)
+{
+    if (se) {
+        type = se->getType();
+        if (type->isInt()) {
+            SymbolEntry* temp = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+            dst = new Operand(temp);
+        }
+        else if (type->isArray()) {
+            SymbolEntry* temp = new TemporarySymbolEntry(new PointerType(((ArrayType*)type)->getElementType()), SymbolTable::getLabel());
+            dst = new Operand(temp);
+        }
     }
 }
 
