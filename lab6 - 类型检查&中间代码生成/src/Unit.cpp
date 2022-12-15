@@ -1,16 +1,18 @@
 #include "Unit.h"
+#include <algorithm>
+#include <stack>
 #include <string>
 #include "Ast.h"
 #include "SymbolTable.h"
 #include "Type.h"
 extern FILE* yyout;
 
-void Unit::insertFunc(Function *f)
+void Unit::insertFunc(Function *f) 
 {
     func_list.push_back(f);
 }
 
-void Unit::removeFunc(Function *func)
+void Unit::removeFunc(Function *func) 
 {
     func_list.erase(std::find(func_list.begin(), func_list.end(), func));
 }
@@ -19,8 +21,40 @@ void Unit::insertGlobal(SymbolEntry* se) {
     global_list.push_back(se);
 }
 
+void Unit::insertDeclare(SymbolEntry* se) {
+    auto iter = std::find(declare_list.begin(), declare_list.end(), se);
+    // 未找到则进行插入的操作，能不能一下全部插入
+    if (iter == declare_list.end()) {
+        declare_list.push_back(se);
+    }
+}
+
+/*
 void Unit::output() const
 {
+    //
+    for (auto se : declare_list) {
+        FunctionType* type = (FunctionType*)(se->getType());
+        std::string str = type->toStr();
+        // 取到名字的字符位置
+        // std::string name = str.substr(0, str.find('('));
+        // std::string param = str.substr(str.find('('));
+        std::string name = ((IdentifierSymbolEntry*)se)->getName();
+        std::string param = "";
+        param = param + "(";
+        for(auto iter = type->getParams().begin(); iter != type->getParams().end(); iter++){
+            param = param + (*iter)->getType()->toStr();
+            if (iter + 1 != type->getParams().end()){
+                param = param +  ", ";
+            }
+        }
+        param = param + ")";
+        // fprintf(yyout, "???? %s\n", str.c_str());
+        fprintf(yyout, "declare %s %s%s\n", type->getReturnType()->toStr().c_str(), se->toStr().c_str(), param.c_str());
+    }
+    //
+    fprintf(yyout, "declare i32 @getint()\n");
+    fprintf(yyout, "declare i32 @putint(i32)\n");
     for (auto se : global_list) {
         if(se->getType()->isInt()){
             fprintf(yyout, "%s = global %s %d, align 4\n", se->toStr().c_str(), se->getType()->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getiValue());
@@ -32,10 +66,11 @@ void Unit::output() const
     for (auto &func : func_list)
         func->output();
 }
+*/
 
 
-/*void Unit::output() const {
-    //输出官方定义库函数
+void Unit::output() const {
+    // 输出外部函数
     for (auto se : declare_list) 
     {
         FunctionType* type = (FunctionType*)(se->getType());
@@ -120,13 +155,23 @@ void Unit::output() const
         }
     }
 
-    for (auto& func : func_list)
+    for (auto& func : func_list) {
         func->output();
-    
-}*/
+    }
+}
+
+void Unit::genMachineCode(MachineUnit* munit) 
+{
+    AsmBuilder* builder = new AsmBuilder();
+    builder->setUnit(munit);
+    for (auto &func : func_list)
+        func->genMachineCode(builder);
+}
 
 Unit::~Unit()
 {
     for(auto &func:func_list)
         delete func;
 }
+
+

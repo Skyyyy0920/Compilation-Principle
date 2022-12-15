@@ -1,0 +1,26 @@
+//test add
+int a = + 1;
+int sss = -10;
+
+int f(int x, int y){
+    return 0;
+}
+
+int main() {
+    int b = 0;
+    int i;
+    i = - 1000;
+    int j;
+    j = f(b,i);
+    int ss = 1 + 2 + 3;
+    while(i < 100){
+        i = i + 1;
+        if(i < 50){
+            continue;
+        }
+        else{
+            break;
+        }
+    }
+    return 1;
+}

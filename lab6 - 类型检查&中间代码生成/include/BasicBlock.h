@@ -3,21 +3,22 @@
 #include <vector>
 #include <set>
 #include "Instruction.h"
+#include "AsmBuilder.h"
 
 class Function;
 
 class BasicBlock
 {
-    typedef std::vector<BasicBlock *>::iterator bb_iterator; // 迭代器
+    typedef std::vector<BasicBlock *>::iterator bb_iterator;
 
 private:
     std::vector<BasicBlock *> pred, succ;
     Instruction *head;
     Function *parent;
-    int no; // ？
+    int no;
 
 public:
-    BasicBlock(Function *); // ？
+    BasicBlock(Function *);
     ~BasicBlock();
     void insertFront(Instruction *);
     void insertBack(Instruction *);
@@ -25,15 +26,15 @@ public:
     void remove(Instruction *);
     bool empty() const { return head->getNext() == head;}
     void output() const;
-    bool succEmpty() const { return succ.empty(); }; // 后继基本块，邻接链表完成
+    bool succEmpty() const { return succ.empty(); };
     bool predEmpty() const { return pred.empty(); };
     void addSucc(BasicBlock *);
     void removeSucc(BasicBlock *);
     void addPred(BasicBlock *);
     void removePred(BasicBlock *);
-    int getNo() { return no; }; // 序号？
+    int getNo() { return no; };
     Function *getParent() { return parent; };
-    Instruction* begin() { return head->getNext();}; // head空链表头？
+    Instruction* begin() { return head->getNext();};
     Instruction* end() { return head;};
     Instruction* rbegin() { return head->getPrev();};
     Instruction* rend() { return head;};
@@ -43,6 +44,7 @@ public:
     bb_iterator pred_end() { return pred.end(); };
     int getNumOfPred() const { return pred.size(); };
     int getNumOfSucc() const { return succ.size(); };
+    void genMachineCode(AsmBuilder*);
 };
 
 #endif

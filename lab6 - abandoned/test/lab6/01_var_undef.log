@@ -1,0 +1,4 @@
+identifier "a" is undefined
+compiler: src/parser.y:86: int yyparse(): Assertion `se != nullptr' failed.
+timeout: the monitored command dumped core
+Aborted
