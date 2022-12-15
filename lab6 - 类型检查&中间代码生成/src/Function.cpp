@@ -25,8 +25,7 @@ Function::~Function()
 }
 
 // remove the basicblock bb from its block_list.
-void Function::remove(BasicBlock *bb)
-{
+void Function::remove(BasicBlock *bb) {
     block_list.erase(std::find(block_list.begin(), block_list.end(), bb));
 }
 
@@ -70,8 +69,7 @@ void Function::output() const {
     fprintf(yyout, "}\n");
 }
 
-void Function::genMachineCode(AsmBuilder* builder) 
-{
+void Function::genMachineCode(AsmBuilder* builder) {
     auto cur_unit = builder->getUnit();
     auto cur_func = new MachineFunction(cur_unit, this->sym_ptr);
     builder->setFunction(cur_func);
@@ -91,5 +89,4 @@ void Function::genMachineCode(AsmBuilder* builder)
             mblock->addSucc(map[*succ]);
     }
     cur_unit->InsertFunc(cur_func);
-
 }
