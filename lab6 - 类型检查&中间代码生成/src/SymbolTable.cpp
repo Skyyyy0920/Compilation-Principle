@@ -201,7 +201,7 @@ SymbolEntry* SymbolTable::lookup(std::string name) {
     */
 }
 
-SymbolEntry* SymbolTable::searchFunc()  // 寻找距离最近的函数，用于return的类型检查（仿照lookup来写的）
+SymbolEntry* SymbolTable::searchFunc()  // 寻找距离最近的函数，用于return的类型检查(已废弃不用)
 {
     SymbolTable *temp = identifiers;
     SymbolEntry *func = nullptr;  // 最后的搜索结果
@@ -235,8 +235,12 @@ SymbolEntry* SymbolTable::checkRepeat(std::string name)  // 在当前的符号�
 bool SymbolTable::install(std::string name, SymbolEntry* entry) {
     // fprintf(stderr, "install %s\n", name.c_str());
     SymbolEntry* se = nullptr;
-    if (entry->getType()->isFunc()) se = identifiers->getPrev()->checkRepeat(name);  // 如果是函数, 需要到上一级符号表去找
-    else se = identifiers->checkRepeat(name);
+    if (entry->getType()->isFunc()) {  // 如果是函数, 需要到上一级符号表去找
+        se = identifiers->getPrev()->checkRepeat(name);
+    }
+    else {
+        se = identifiers->checkRepeat(name);
+    }
 
     if (se) {  // 判断是否在同一作用域下重复定义
         if (se->getType()->isFunc()) {

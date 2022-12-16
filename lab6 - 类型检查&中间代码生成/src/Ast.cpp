@@ -449,12 +449,12 @@ void DeclStmt::genCode() {
         unit.insertGlobal(se);
         mUnit.insertGlobal(se);
     } 
-    else if (se->isLocal()) {  // 对于局部变量或者参数, 要先分配空间AllocaInstruction
+    else if (se->isLocal()) {  // 对于局部变量或者参数, 要先分配空间(AllocaInstruction)
         Function* func = builder->getInsertBB()->getParent();
         BasicBlock* entry = func->getEntry();
         Instruction* alloca;
         Type* type;
-       
+    
         type = new PointerType(se->getType());
         addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());
         addr = new Operand(addr_se);
@@ -463,13 +463,25 @@ void DeclStmt::genCode() {
         se->setAddr(addr);
 
         if (expr) {  // 如果有初始值 需要再插入store指令
+            if (1) {  // TODO 还没想好怎么判断一个表达式怎么把所有子节点都判断一遍是不是constant
             BasicBlock* bb = builder->getInsertBB();
             expr->genCode();
             Operand* src = expr->getOperand();
             new StoreInstruction(addr, src, bb);
+            }
+            else {
+                /*            
+                    当一个表达式的叶节点全是constant时, 可以在编译阶段给她算出来
+                    eg: int a = 1 + 2 + 7;
+                        --> %a = alloca i32, align 4 
+                            store i32 10, i32* %a, align 4
+                    两条指令解决, 而不需要再算1 + 2 和 3 + 7
+                */
+                int a = ((IdentifierSymbolEntry*)se)->getValue();
+            }
         }
     }
-    else if (se->isParam()) {  // 对于局部变量或者参数, 要先分配空间AllocaInstruction
+    else if (se->isParam()) {
         Function* func = builder->getInsertBB()->getParent();
         BasicBlock* entry = func->getEntry();
         Instruction* alloca;
@@ -867,6 +879,13 @@ void CallExpr::genCode() {
 
 // TODO
 void AssignStmt::genCode() {
+    /*            
+        当一个表达式的叶节点全是constant时, 可以在编译阶段给她算出来
+        eg: int a = 1 + 2 + 7;  
+            --> %a = alloca i32, align 4 
+                store i32 10, i32* %a, align 4
+        两条指令解决, 而不需要再算1 + 2 和 3 + 7
+    */
     BasicBlock* bb = builder->getInsertBB();
     expr->genCode();
     Operand* addr = nullptr;
@@ -991,50 +1010,53 @@ bool DeclStmt::typeCheck(Type* retType) {
 }
 
 bool IfStmt::typeCheck(Type* retType) {
-    /*
+    /* 
+    
+    有bug, 隐式类型转换放到构造函数中检查
+
     // 条件判断表达式，需要为int或者bool，如果是int需要做类型转换
     if (cond->getSymbolEntry()->getType()->isInt()) {
         cond->getSymbolEntry()->setType(TypeSystem::boolType);
         fprintf(stderr, "IfStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
-    // else if (cond->getSymbolEntry()->getType()->isBool()) {
+    else if (cond->getSymbolEntry()->getType()->isBool()) {
         // do nothing
-    // }
+    }
     else if (cond->getSymbolEntry()->getType()->isFunc()) {
-        if (!(cond->getSymbolEntry()->getType()->getRetType()->isInt() || cond->getSymbolEntry()->getType()->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
+        if (!(((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isInt() || ((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
             fprintf(stderr, "if条件判断表达式的类型是函数返回类型, 但函数返回的类型不是int或bool\n");
         }
     }
     else {
         fprintf(stderr, "if条件判断表达式类型不正确\n");
     }
+    */
 
     if (thenStmt) {
         return thenStmt->typeCheck(retType);
     }
-    */
     return false;
 }
 
 bool IfElseStmt::typeCheck(Type* retType) {
-    /*
+    /* 有bug
     if (cond->getSymbolEntry()->getType()->isInt()) {
         cond->getSymbolEntry()->setType(TypeSystem::boolType);
         fprintf(stderr, "IfElseStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
-    // else if (cond->getSymbolEntry()->getType()->isBool()) {
+    else if (cond->getSymbolEntry()->getType()->isBool()) {
         // do nothing
-    // }
+    }
     else if (cond->getSymbolEntry()->getType()->isFunc()) {
-        if (!(cond->getSymbolEntry()->getType()->getRetType()->isInt() || cond->getSymbolEntry()->getType()->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
-            fprintf(stderr, "if条件判断表达式类型是函数的返回类型, 但不是int或bool\n");
+        if (!(((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isInt() || ((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
+            fprintf(stderr, "if条件判断表达式的类型是函数返回类型, 但函数返回的类型不是int或bool\n");
         }
     }
     else {
         fprintf(stderr, "if条件判断表达式类型不正确\n");
     }
-
     */
+    
     bool flag1 = false, flag2 = false;
     if (thenStmt)
         flag1 = thenStmt->typeCheck(retType);
@@ -1067,6 +1089,7 @@ bool ReturnStmt::typeCheck(Type* retType) {
 
 void ReturnStmt::typeCheck(SymbolEntry* curFunc)
 {
+    /*
     Type *funcType = curFunc->getType();  // 函数的返回类型
     if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
         retValue->typeCheck();
@@ -1080,33 +1103,37 @@ void ReturnStmt::typeCheck(SymbolEntry* curFunc)
             fprintf(stderr, "函数类型为 %s, 但返回了void\n", funcType->toStr().c_str());
         }
     }
+    */
 }
 
 bool WhileStmt::typeCheck(Type* retType) {
-    // TODO
     /*
+    
+    有bug, 转而在构造函数中实现
+
     // 检查条件判断表达式cond
     if (cond->getSymbolEntry()->getType()->isInt()) {
         cond->getSymbolEntry()->setType(TypeSystem::boolType);
         fprintf(stderr, "WhileStmt条件判断表达式类型为int, 隐式类型转换为bool\n");
     }
-    // else if (cond->getSymbolEntry()->getType()->isBool()) {
+    else if (cond->getSymbolEntry()->getType()->isBool()) {
         // do nothing
-    // }
+    }
     else if (cond->getSymbolEntry()->getType()->isFunc()) {
-        if (!(cond->getSymbolEntry()->getType()->getRetType()->isInt() || cond->getSymbolEntry()->getType()->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
+        if (!(((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isInt() || ((FunctionType*)cond->getSymbolEntry()->getType())->getRetType()->isBool())) {  // 如果是函数，返回类型需要是bool或者int
             fprintf(stderr, "while条件判断表达式类型是函数的返回类型, 但不是int或bool\n");
         }
     }
     else {
         fprintf(stderr, "while条件判断表达式类型不正确\n");
     }
+    
+    */
 
     // 检查循环体
     if (stmt) {
         return stmt->typeCheck(retType);
     }
-    */
     return false;
 }
 
@@ -1672,7 +1699,7 @@ DeclStmt::DeclStmt(Id* id, ExprNode* expr) : id(id) {
 
 IfStmt::IfStmt(ExprNode* cond, StmtNode* thenStmt) : cond(cond), thenStmt(thenStmt) {
     if (cond->getType()->isInt() && cond->getType()->getSize() == 32) {
-        ImplictCastExpr* temp = new ImplictCastExpr(cond);
+        ImplictCastExpr* temp = new ImplictCastExpr(cond);  // 隐式类型转换
         this->cond = temp;
     }
 }
@@ -1692,6 +1719,57 @@ WhileStmt::WhileStmt(ExprNode* cond, StmtNode* stmt) : cond(cond), stmt(stmt) {
 }
 
 AssignStmt::AssignStmt(ExprNode* lval, ExprNode* expr) : lval(lval), expr(expr) {
+    /* shm
+    Type* type = ((Id*)lval)->getType();
+    Type* exprType = expr->getType();
+    SymbolEntry* se = lval->getSymbolEntry();
+    bool flag = true;
+    if (type->isInt()) {
+        if (((IntType*)type)->isConst()) {
+            fprintf(stderr,
+                    "cannot assign to variable \'%s\' with const-qualified "
+                    "type \'%s\'\n",
+                    ((IdentifierSymbolEntry*)se)->toStr().c_str(),
+                    type->toStr().c_str());
+            flag = false;
+        }
+    } 
+    else if (type->isFloat()) {
+        if (((FloatType*)type)->isConst()) {
+            fprintf(stderr,
+                    "cannot assign to variable \'%s\' with const-qualified "
+                    "type \'%s\'\n",
+                    ((IdentifierSymbolEntry*)se)->toStr().c_str(),
+                    type->toStr().c_str());
+            flag = false;
+        }
+    }
+    else if (type->isArray()) {
+        fprintf(stderr, "array type \'%s\' is not assignable\n",
+                type->toStr().c_str());
+        flag = false;
+    }
+    if (flag) {
+        if (type != exprType) {  // comparing ptr, how about const?
+            if (type->isInt() && exprType->isFloat()) {
+                ImplictCastExpr* temp =
+                    new ImplictCastExpr(expr, TypeSystem::intType);
+                this->expr = temp;
+            } else if (type->isFloat() && exprType->isInt()) {
+                ImplictCastExpr* temp =
+                    new ImplictCastExpr(expr, TypeSystem::floatType);
+                this->expr = temp;
+            } else {
+                fprintf(stderr,
+                        "cannot initialize a variable of type \'%s\' with an "
+                        "rvalue "
+                        "of type \'%s\'\n",
+                        type->toStr().c_str(), exprType->toStr().c_str());
+            }
+        }
+    }
+    */
+
     Type* type = ((Id*)lval)->getType();
     // SymbolEntry* se = lval->getSymbolEntry();
     bool flag = true;
