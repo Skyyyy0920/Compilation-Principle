@@ -449,7 +449,7 @@ MachineOperand* Instruction::genMachineOperand(Operand* ope) {
     if (se->isConstant())
         mope = new MachineOperand(
             MachineOperand::IMM,
-            dynamic_cast<ConstantSymbolEntry*>(se)->getValue());
+            dynamic_cast<ConstantSymbolEntry*>(se)->getValue());  // TODO int or float
     else if (se->isTemporary())
         mope = new MachineOperand(
             MachineOperand::VREG,
@@ -692,7 +692,7 @@ void CmpInstruction::genMachineCode(AsmBuilder* builder) {
         src1 = new MachineOperand(*internal_reg);
     }
     if (src2->isImm() &&
-        ((ConstantSymbolEntry*)(operands[2]->getEntry()))->getValue() > 255) {
+        ((ConstantSymbolEntry*)(operands[2]->getEntry()))->getValue() > 255) {  // TODO int or float
         auto internal_reg = genMachineVReg();
         cur_inst = new LoadMInstruction(cur_block, internal_reg, src2);
         cur_block->InsertInst(cur_inst);

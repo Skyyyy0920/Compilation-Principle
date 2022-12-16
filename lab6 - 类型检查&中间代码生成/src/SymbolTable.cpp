@@ -22,15 +22,14 @@ bool SymbolEntry::setNext(SymbolEntry* se) {
     return true;
 }
 
-SymbolEntry::SymbolEntry(Type* type, int kind) {
-    this->type = type;
-    this->kind = kind;
+ConstantSymbolEntry::ConstantSymbolEntry(Type *type, int value) : SymbolEntry(type, SymbolEntry::CONSTANT) {
+    this->value = value;
+    this->fvalue = 0;
 }
 
-ConstantSymbolEntry::ConstantSymbolEntry(Type* type, int value)
-    : SymbolEntry(type, SymbolEntry::CONSTANT) {
-    assert(type->isInt());
-    this->value = value;
+ConstantSymbolEntry::ConstantSymbolEntry(Type *type, float fvalue) : SymbolEntry(type, SymbolEntry::CONSTANT) {
+    this->value = 0;
+    this->fvalue = fvalue;
 }
 
 ConstantSymbolEntry::ConstantSymbolEntry(Type* type, std::string value)
@@ -39,14 +38,8 @@ ConstantSymbolEntry::ConstantSymbolEntry(Type* type, std::string value)
     this->strValue = value;
 }
 
-ConstantSymbolEntry::ConstantSymbolEntry(Type* type)
-    : SymbolEntry(type, SymbolEntry::CONSTANT) {
+ConstantSymbolEntry::ConstantSymbolEntry(Type* type) : SymbolEntry(type, SymbolEntry::CONSTANT) {
     // assert(type->isArray());
-}
-
-int ConstantSymbolEntry::getValue() const {
-    assert(type->isInt());
-    return value;
 }
 
 std::string ConstantSymbolEntry::getStrValue() const {
@@ -56,22 +49,22 @@ std::string ConstantSymbolEntry::getStrValue() const {
 
 std::string ConstantSymbolEntry::toStr() {
     std::ostringstream buffer;
-    if (type->isInt())
+    if (type->isInt()) {
         buffer << value;
-    else if (type->isString())
+        return buffer.str();
+    }
+    else if (type->isFloat()) {
+        buffer << fvalue;
+        return buffer.str();
+    }
+    else if (type->isString()) {
         buffer << strValue;
+    }
     return buffer.str();
 }
 
-IdentifierSymbolEntry::IdentifierSymbolEntry(Type* type,
-                                             std::string name,
-                                             int scope,
-                                             int paramNo,
-                                             bool sysy)
-    : SymbolEntry(type, SymbolEntry::VARIABLE),
-      name(name),
-      sysy(sysy),
-      paramNo(paramNo) {
+IdentifierSymbolEntry::IdentifierSymbolEntry(Type* type, std::string name, int scope, int paramNo, bool sysy)
+    : SymbolEntry(type, SymbolEntry::VARIABLE), name(name), sysy(sysy), paramNo(paramNo) {
     this->scope = scope;
     this->initial = false;
     this->label = -1;
@@ -79,6 +72,7 @@ IdentifierSymbolEntry::IdentifierSymbolEntry(Type* type,
     this->constant = false;
 }
 
+/*
 void IdentifierSymbolEntry::setValue(int value) {
     if (((IntType*)(this->getType()))->isConst()) {
         if (!initial) {
@@ -91,6 +85,7 @@ void IdentifierSymbolEntry::setValue(int value) {
         this->value = value;
     }
 }
+*/
 
 void IdentifierSymbolEntry::setArrayValue(int* arrayValue) {
     if (((IntType*)(this->getType()))->isConst()) {

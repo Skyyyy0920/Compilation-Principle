@@ -79,7 +79,7 @@ public:
 };
 
 class BinaryInstruction : public Instruction {
-protected:
+public:
     enum { SUB, ADD, AND, OR, MUL, DIV, MOD };
 public:
     BinaryInstruction(unsigned opcode, Operand *dst, Operand *src1, Operand *src2, BasicBlock *insert_bb = nullptr);
@@ -89,7 +89,7 @@ public:
 };
 
 class CmpInstruction : public Instruction {\
-protected:
+public:
     enum { E, NE, L, LE, G, GE };
 public:
     CmpInstruction(unsigned opcode, Operand *dst, Operand *src1, Operand *src2, BasicBlock *insert_bb = nullptr);
@@ -140,8 +140,8 @@ public:
 class CallInstruction : public Instruction
 {
 private:
-    SymbolEntry* func;
     Operand* dst;
+    SymbolEntry* func;
 public:
     CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb = nullptr);
     ~CallInstruction();

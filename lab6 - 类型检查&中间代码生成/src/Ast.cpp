@@ -68,7 +68,6 @@ void ExprStmt::genCode() {
 }
 
 void UnaryExpr::genCode() {
-    // Todo
     expr->genCode();
     if (op == NOT) {
         BasicBlock* bb = builder->getInsertBB();
@@ -80,9 +79,22 @@ void UnaryExpr::genCode() {
             src = temp;
         }
         new XorInstruction(dst, src, bb);
-        
-    } 
-    else if (op == SUB) {  //-x的情况下 就是用0-x  但是要判断x是否为i1类型 因为sub要求两边是i32
+    }
+    else if (op == ADD) {  
+        Operand* src2;
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
+        // i1转换为i32
+        if (expr->getType()->getSize() == 1) {
+            src2 = new Operand(new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel()));
+            new ZextInstruction(src2, expr->getOperand(), bb);
+        } 
+        else {
+            src2 = expr->getOperand();
+        }
+        new BinaryInstruction(BinaryInstruction::ADD, dst, src1, src2, bb);
+    }
+    else if (op == SUB) {   // -x的情况下 就是用0-x  但是要判断x是否为i1类型 因为sub要求两边是i32
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
@@ -518,7 +530,7 @@ void DeclStmt::genCode() {
         addr = new Operand(addr_se);
         alloca = new AllocaInstruction(addr, se);
         entry->insertFront(alloca);
-         //如果是参数还需要stroe
+        //如果是参数还需要stroe
         Operand* temp = nullptr;
         if (se->isParam())
         {
@@ -638,14 +650,14 @@ void ReturnStmt::genCode() {
 }
 
 void ContinueStmt::genCode() {
+    /*
     Function* func = builder->getInsertBB()->getParent();
     BasicBlock* bb = builder->getInsertBB();
     new UncondBrInstruction(((WhileStmt*)whileStmt)->get_cond_bb(), bb);
     BasicBlock* continue_next_bb = new BasicBlock(func);
     builder->setInsertBB(continue_next_bb);
+    */
 
-    // TODO
-    /*
     BasicBlock* bb = builder->getInsertBB();
     Function* func = bb->getParent();
     // 直接跳转到条件判断处
@@ -654,14 +666,13 @@ void ContinueStmt::genCode() {
     // 虽然已经设置好了跳转基本块，还是要按部就班往下继续生成代码
     BasicBlock* continue_next_bb = new BasicBlock(func);
     builder->setInsertBB(continue_next_bb);
-    */
 }
 
 void BreakStmt::genCode() {
-    // Todo
-    Function* func = builder->getInsertBB()->getParent();
     BasicBlock* bb = builder->getInsertBB();
-    new UncondBrInstruction(((WhileStmt*)whileStmt)->get_end_bb(), bb);
+    Function* func = bb->getParent();
+    next_bb = ((WhileStmt*)whileStmt)->get_end_bb();
+    new UncondBrInstruction(next_bb, bb);
     BasicBlock* break_next_bb = new BasicBlock(func);
     builder->setInsertBB(break_next_bb);
 }
@@ -690,32 +701,30 @@ void WhileStmt::genCode() {
 
     while_bb = builder->getInsertBB();
     new UncondBrInstruction(cond_bb, while_bb);
-
     builder->setInsertBB(end_bb);
 
-    // TODO
-    /*
+
+    /* !!!! wo kao !!!!
     Function *func;
     BasicBlock *loop_bb, *end_bb , *cond_bb;  // 条件语句块，循环块，结束跳转块
 
     BasicBlock *bb = builder->getInsertBB();
     func = builder->getInsertBB()->getParent();
     cond_bb = new BasicBlock(func);
+    loop_bb = new BasicBlock(func);
+    end_bb = new BasicBlock(func);
     this->cond_bb = cond_bb;
+    this->loop_bb = loop_bb;
+    this->end_bb = end_bb;
 
     // 给当前的基本块增加跳转指令跳转到cond_bb
     new UncondBrInstruction(cond_bb, bb);
-
     builder->setInsertBB(cond_bb);
+
     // 这里有完成类型转换嘛??
     cond->genCode();
     // ??
     if(!cond -> getOperand() -> getType() -> isBool()){}
-
-    loop_bb = new BasicBlock(func);
-    end_bb = new BasicBlock(func);
-    this->loop_bb = loop_bb;
-    this->end_bb = end_bb;
 
     // 生成完条件基本块后，就是循环块了
     backPatch(cond->trueList(), loop_bb);
@@ -748,17 +757,13 @@ void FunctionDef::genCode() {
     if (decl) decl->genCode();
     if (stmt) stmt->genCode();  // function中的stmt节点是用compoundstmt进行初始化的
 
-    /**
-     * Construct control flow graph. You need do set successors and predecessors
-     * for each basic block. Todo
-     */
-    
+    // TODO
     // 生成控制流图
     for (auto block = func->begin(); block != func->end(); block++) {
-        //获取该块的最后一条指令
+        // 获取该块的最后一条指令
         Instruction* i = (*block)->begin();
         Instruction* last = (*block)->rbegin();
-        //从块中删除条件型语句
+        // 从块中删除条件型语句
         while (i != last) {
             if (i->isCond() || i->isUncond()) {
                 (*block)->remove(i);
@@ -781,27 +786,27 @@ void FunctionDef::genCode() {
             (*block)->addSucc(dst);
             // 如果无条件跳转的目标块为空 那么就插入return
             dst->addPred(*block);
+            /*
             if (dst->empty()) {
                 if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::intType)
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
                 else if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::voidType)
                     new RetInstruction(nullptr, dst);
             }
-
-            // TODO
-            /*
+            */
+            
             if (dst->empty()){
-                if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::intType){
+                if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::intType){
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
                 }
-                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::floatType) {
+                else if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::floatType) {
                     new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), dst);
                 }
-                else if (((FunctionType*)(se->getType()))->getReturnType() == TypeSystem::voidType){
+                else if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::voidType){
                     new RetInstruction(nullptr, dst);
                 }
             }
-            */
+            
         }
         // 没有显示返回或者跳转的语句 插入空返回
         else if ((!last->isRet()) && ((FunctionType*)(se->getType()))->getRetType() ==TypeSystem::voidType) {
@@ -809,12 +814,9 @@ void FunctionDef::genCode() {
         }
     }
 
-    // TODO
-    /*
     // 目前还没用
     BasicBlock *exitBB = new BasicBlock(func);
     func->setExit(exitBB);
-    */
 }
 
 /*
@@ -1625,17 +1627,17 @@ int BinaryExpr::getValue()
 }
 
 int Constant::getValue() {
-    return ((ConstantSymbolEntry*)symbolEntry)->getValue();
+    // return ((ConstantSymbolEntry*)symbolEntry)->getValue();
     // TODO
-    // if (this->getSymbolEntry()->getType()->isInt()) return ((ConstantSymbolEntry*)this->getSymbolEntry())->getiValue();
-    // else return ((ConstantSymbolEntry*)this->getSymbolEntry())->getfValue();
+    if (this->getSymbolEntry()->getType()->isInt()) return ((ConstantSymbolEntry*)this->getSymbolEntry())->getValue();
+    else return ((ConstantSymbolEntry*)this->getSymbolEntry())->getfValue();
 }
 
 int Id::getValue() {
-    return ((IdentifierSymbolEntry*)symbolEntry)->getValue();
+    // return ((IdentifierSymbolEntry*)symbolEntry)->getValue();
     // TODO
-    // if (this->getSymbolEntry()->getType()->isInt()) return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getiValue();
-    // else return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getfValue();
+    if (this->getSymbolEntry()->getType()->isInt()) return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getValue();
+    else return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getfValue();
 }
 
 

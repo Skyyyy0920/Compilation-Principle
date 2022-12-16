@@ -72,7 +72,7 @@ private:
     int op;
     ExprNode* expr;
 public:
-    enum { NOT, SUB };  // TODO
+    enum { NOT, SUB, ADD }; 
     UnaryExpr(SymbolEntry* se, int op, ExprNode* expr);
     bool typeCheck(Type* retType = nullptr);
     void genCode();

@@ -559,7 +559,7 @@ void MachineUnit::PrintGlobalDecl() {
                     se->getType()->getSize() / 8);
             fprintf(yyout, "%s:\n", se->toStr().c_str());
             if (!se->getType()->isArray()) {
-                fprintf(yyout, "\t.word %d\n", se->getValue());
+                fprintf(yyout, "\t.word %d\n", se->getValue());  // TODO int or float
             } else {
                 int n = se->getType()->getSize() / 32;
                 int* p = se->getArrayValue();
@@ -579,7 +579,7 @@ void MachineUnit::PrintGlobalDecl() {
                     se->getType()->getSize() / 8);
             fprintf(yyout, "%s:\n", se->toStr().c_str());
             if (!se->getType()->isArray()) {
-                fprintf(yyout, "\t.word %d\n", se->getValue());
+                fprintf(yyout, "\t.word %d\n", se->getValue());  // TODO
             } else {
                 int n = se->getType()->getSize() / 32;
                 int* p = se->getArrayValue();

@@ -15,7 +15,7 @@ private:
     std::vector<Function*> func_list;
     std::vector<SymbolEntry*> declare_list; // 外部声明函数
 
-   public:
+public:
     Unit() = default;
     ~Unit();
     void insertFunc(Function *);
