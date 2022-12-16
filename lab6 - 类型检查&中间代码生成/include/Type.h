@@ -18,13 +18,13 @@ public:
     virtual ~Type(){};
     virtual std::string toStr() = 0;
     bool isInt() const { return kind == INT; };
-    bool isFloat() const {return kind == FLOAT;};
     bool isVoid() const { return kind == VOID; };
     bool isFunc() const { return kind == FUNC; };
     bool isPtr() const { return kind == PTR; };
     bool isArray() const { return kind == ARRAY; };
     bool isString() const { return kind == STRING; };
-    bool isBool() const { return kind == BOOL; };
+    bool isFloat() const {return kind == FLOAT;};
+    bool isBool() const {return kind == BOOL;};
     int getKind() const { return kind; };
     int getSize() const { return size; };
 

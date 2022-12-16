@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 25 "src/parser.y"
+#line 23 "src/parser.y"
 
     #include "Ast.h"
     #include "SymbolTable.h"
@@ -65,40 +65,39 @@ extern int yydebug;
     ID = 258,                      /* ID  */
     STRING = 259,                  /* STRING  */
     INTEGER = 260,                 /* INTEGER  */
-    FLOATNUM = 261,                /* FLOATNUM  */
-    IF = 262,                      /* IF  */
-    ELSE = 263,                    /* ELSE  */
-    WHILE = 264,                   /* WHILE  */
-    INT = 265,                     /* INT  */
-    VOID = 266,                    /* VOID  */
-    LPAREN = 267,                  /* LPAREN  */
-    RPAREN = 268,                  /* RPAREN  */
-    LBRACE = 269,                  /* LBRACE  */
-    RBRACE = 270,                  /* RBRACE  */
-    SEMICOLON = 271,               /* SEMICOLON  */
-    LBRACKET = 272,                /* LBRACKET  */
-    RBRACKET = 273,                /* RBRACKET  */
-    COMMA = 274,                   /* COMMA  */
-    ADD = 275,                     /* ADD  */
-    SUB = 276,                     /* SUB  */
-    MUL = 277,                     /* MUL  */
-    DIV = 278,                     /* DIV  */
-    MOD = 279,                     /* MOD  */
-    OR = 280,                      /* OR  */
-    AND = 281,                     /* AND  */
-    LESS = 282,                    /* LESS  */
-    LESSEQUAL = 283,               /* LESSEQUAL  */
-    GREATER = 284,                 /* GREATER  */
-    GREATEREQUAL = 285,            /* GREATEREQUAL  */
-    ASSIGN = 286,                  /* ASSIGN  */
-    EQUAL = 287,                   /* EQUAL  */
-    NOTEQUAL = 288,                /* NOTEQUAL  */
-    NOT = 289,                     /* NOT  */
-    CONST = 290,                   /* CONST  */
-    RETURN = 291,                  /* RETURN  */
-    CONTINUE = 292,                /* CONTINUE  */
-    BREAK = 293,                   /* BREAK  */
-    THEN = 294                     /* THEN  */
+    IF = 261,                      /* IF  */
+    ELSE = 262,                    /* ELSE  */
+    WHILE = 263,                   /* WHILE  */
+    INT = 264,                     /* INT  */
+    VOID = 265,                    /* VOID  */
+    LPAREN = 266,                  /* LPAREN  */
+    RPAREN = 267,                  /* RPAREN  */
+    LBRACE = 268,                  /* LBRACE  */
+    RBRACE = 269,                  /* RBRACE  */
+    SEMICOLON = 270,               /* SEMICOLON  */
+    LBRACKET = 271,                /* LBRACKET  */
+    RBRACKET = 272,                /* RBRACKET  */
+    COMMA = 273,                   /* COMMA  */
+    ADD = 274,                     /* ADD  */
+    SUB = 275,                     /* SUB  */
+    MUL = 276,                     /* MUL  */
+    DIV = 277,                     /* DIV  */
+    MOD = 278,                     /* MOD  */
+    OR = 279,                      /* OR  */
+    AND = 280,                     /* AND  */
+    LESS = 281,                    /* LESS  */
+    LESSEQUAL = 282,               /* LESSEQUAL  */
+    GREATER = 283,                 /* GREATER  */
+    GREATEREQUAL = 284,            /* GREATEREQUAL  */
+    ASSIGN = 285,                  /* ASSIGN  */
+    EQUAL = 286,                   /* EQUAL  */
+    NOTEQUAL = 287,                /* NOTEQUAL  */
+    NOT = 288,                     /* NOT  */
+    CONST = 289,                   /* CONST  */
+    RETURN = 290,                  /* RETURN  */
+    CONTINUE = 291,                /* CONTINUE  */
+    BREAK = 292,                   /* BREAK  */
+    THEN = 293                     /* THEN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -107,17 +106,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 31 "src/parser.y"
+#line 29 "src/parser.y"
 
     int itype;
-    float ftype;
     char* strtype;
     StmtNode* stmttype;
     ExprNode* exprtype;
     Type* type;
     SymbolEntry* se;
 
-#line 121 "include/parser.h"
+#line 119 "include/parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

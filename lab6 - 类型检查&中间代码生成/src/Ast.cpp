@@ -1627,17 +1627,17 @@ int BinaryExpr::getValue()
 }
 
 int Constant::getValue() {
-    // return ((ConstantSymbolEntry*)symbolEntry)->getValue();
+    return ((ConstantSymbolEntry*)symbolEntry)->getValue();
     // TODO
-    if (this->getSymbolEntry()->getType()->isInt()) return ((ConstantSymbolEntry*)this->getSymbolEntry())->getValue();
-    else return ((ConstantSymbolEntry*)this->getSymbolEntry())->getfValue();
+    // if (this->getSymbolEntry()->getType()->isInt()) return ((ConstantSymbolEntry*)this->getSymbolEntry())->getiValue();
+    // else return ((ConstantSymbolEntry*)this->getSymbolEntry())->getfValue();
 }
 
 int Id::getValue() {
-    // return ((IdentifierSymbolEntry*)symbolEntry)->getValue();
+    return ((IdentifierSymbolEntry*)symbolEntry)->getValue();
     // TODO
-    if (this->getSymbolEntry()->getType()->isInt()) return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getValue();
-    else return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getfValue();
+    // if (this->getSymbolEntry()->getType()->isInt()) return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getiValue();
+    // else return ((IdentifierSymbolEntry*)this->getSymbolEntry())->getfValue();
 }
 
 

@@ -6,20 +6,18 @@
     #include <stack>
     extern Ast ast;
 
-    // int idx;
-    // int* arrayValue;
-    int leftCnt = 0;
-    int paramNo = 0;
-
-    Type* declType;
-    SymbolEntry* curFunc;
-    std::stack<InitValueListExpr*> stk;
-    std::stack<StmtNode*> whileStk;
-    ArrayType* arrayType;
-    InitValueListExpr* top;
-
     int yylex();
     int yyerror(char const*);
+
+    ArrayType* arrayType;
+    // int idx;
+    // int* arrayValue;
+    std::stack<InitValueListExpr*> stk;
+    std::stack<StmtNode*> whileStk;
+    InitValueListExpr* top;
+    int leftCnt = 0;
+    int paramNo = 0;
+    SymbolEntry* curFunc;
 }
 
 %code requires {
@@ -30,7 +28,6 @@
 
 %union {
     int itype;
-    float ftype;
     char* strtype;
     StmtNode* stmttype;
     ExprNode* exprtype;
@@ -41,7 +38,6 @@
 %start Program
 %token <strtype> ID STRING
 %token <itype> INTEGER
-%token <ftype> FLOATNUM
 %token IF ELSE WHILE
 %token INT VOID
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON LBRACKET RBRACKET COMMA  
@@ -190,10 +186,6 @@ PrimaryExp  // 表达式最初的右值, 一般为数字0-9, 或者id
     }
     | INTEGER {
         SymbolEntry* se = new ConstantSymbolEntry(TypeSystem::intType, $1);
-        $$ = new Constant(se);
-    }
-    | FLOATNUM {
-        SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::floatType, $1);
         $$ = new Constant(se);
     }
     | ID LPAREN FuncRParams RPAREN {
@@ -350,15 +342,7 @@ VarDef
         SymbolEntry* se;
         se = new IdentifierSymbolEntry(TypeSystem::intType, $1, identifiers->getLevel());
         identifiers->install($1, se);
-
-        if(declType->isFloat()){
-            ((IdentifierSymbolEntry*)se)->setfValue($3->getValue()); 
-        }
-        if(declType->isInt()){
-            ((IdentifierSymbolEntry*)se)->setValue($3->getValue()); 
-        }
-        //((IdentifierSymbolEntry*)se)->setValue($3->getValue());
-        
+        ((IdentifierSymbolEntry*)se)->setValue($3->getValue());
         $$ = new DeclStmt(new Id(se), $3);
         delete []$1;
     }
@@ -404,15 +388,8 @@ ConstDef
         ((IdentifierSymbolEntry*)se)->setConst();
          identifiers->install($1, se);
      
-        // 这里展示的也是对expr node的属性的计算，这些node的值可以是float类型的，因为最后会进行int和float的判断
-        if(declType->isFloat()){
-            ((IdentifierSymbolEntry*)se)->setfValue($3->getValue()); 
-        }
-        if(declType->isInt()){
-            ((IdentifierSymbolEntry*)se)->setValue($3->getValue()); 
-        }
-        // ((IdentifierSymbolEntry*)se)->setValue($3->getValue());
         
+        ((IdentifierSymbolEntry*)se)->setValue($3->getValue());
         $$ = new DeclStmt(new Id(se), $3);
         delete []$1;
     }

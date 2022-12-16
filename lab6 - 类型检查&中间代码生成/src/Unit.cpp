@@ -88,7 +88,7 @@ void Unit::output() const {
     fprintf(yyout, "declare void @putch(i32)\n");
     for (auto se : global_list) {
         if (se->getType()->isInt()) {
-            fprintf(yyout, "%s = global %s %d, align 4\n", se->toStr().c_str(), se->getType()->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getValue());  // TODO int or float
+            fprintf(yyout, "%s = global %s %d, align 4\n", se->toStr().c_str(), se->getType()->toStr().c_str(), ((IdentifierSymbolEntry*)se)->getValue());
         }
         // 全局数组的中间代码输出
         // 大致思路就是先输出当前高维的情况 3*4*i32

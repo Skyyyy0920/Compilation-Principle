@@ -42,8 +42,8 @@ int main(int argc, char* argv[]) {
                 dump_asm = true;
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-o outfile] infile\n", argv[0]);
-                exit(EXIT_FAILURE);
+                // fprintf(stderr, "Usage: %s [-o outfile] infile\n", argv[0]);
+                // exit(EXIT_FAILURE);
                 dump_asm = true;
 
                 break;
@@ -62,30 +62,13 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "%s: fail to open output file\n", outfile);
         exit(EXIT_FAILURE);
     }
-    yyparse();  // 构建语法树
-    fprintf(stderr, "\n语法树构建完成\n");
-    fprintf(stderr, "==========================================================\n\n");
-
-    if(dump_ast) {
-        ast.output();  // 打印语法树
-        fprintf(stderr, "\n语法树打印完成\n");
-        fprintf(stderr, "==========================================================\n\n");
-    }
-
-    ast.typeCheck();  // 类型检查
-    fprintf(stderr, "\n类型检查完成\n");
-    fprintf(stderr, "==========================================================\n\n");
-
-    ast.genCode(&unit);  // 中间代码生成
-    fprintf(stderr, "\n中间代码生成完成\n");
-    fprintf(stderr, "==========================================================\n\n");
-
-    if(dump_ir){
-        unit.output();  // 打印中间代码
-        fprintf(stderr, "\n中间代码输出完成\n");
-        fprintf(stderr, "==========================================================\n\n");
-    }
-    
+    yyparse();
+    if (dump_ast)
+        ast.output();
+    ast.typeCheck();
+    ast.genCode(&unit);
+    if (dump_ir)
+        unit.output();
     unit.genMachineCode(&mUnit);
     LinearScan linearScan(&mUnit);
     linearScan.allocateRegisters();
