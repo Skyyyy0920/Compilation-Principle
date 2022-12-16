@@ -97,7 +97,7 @@ LVal
         */
     }
     ;
-AssignStmt
+AssignStmt  // eg: a = 1 + 1; 赋值语句
     : LVal ASSIGN Exp SEMICOLON {
         $$ = new AssignStmt($1, $3);
     }
@@ -335,7 +335,7 @@ ConstDefList
     }
     | ConstDef {$$ = $1;}
     ;
-VarDef
+VarDef  // 定义语句
     : ID {  // eg: int a;
         SymbolEntry* se;
         se = new IdentifierSymbolEntry(TypeSystem::intType, $1, identifiers->getLevel());

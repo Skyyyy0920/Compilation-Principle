@@ -311,8 +311,8 @@ public:
 class AssignStmt : public StmtNode  // = 赋值类
 {
 private:
-    ExprNode* lval;
-    ExprNode* expr;
+    ExprNode* lval;  // 等式左侧, ID或ID[]
+    ExprNode* expr;  // 等式右侧, 表达式
 public:
     AssignStmt(ExprNode* lval, ExprNode* expr);
     bool typeCheck(Type* retType = nullptr);

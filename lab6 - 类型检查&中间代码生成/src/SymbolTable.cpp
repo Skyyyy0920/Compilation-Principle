@@ -17,7 +17,7 @@ bool SymbolEntry::setNext(SymbolEntry* se) {
                 }
             }
             if (!flag) {  // flag=0, 表示有已声明的函数形参表与新声明的一模一样, 那么算作函数重定义
-                fprintf(stderr, "函数 %s 重定义\n", se->toStr().c_str());
+                fprintf(stderr, "函数 %s 重定义!\n", se->toStr().c_str());
                 return false;
             }
         }
@@ -243,7 +243,7 @@ bool SymbolTable::install(std::string name, SymbolEntry* entry) {
             return se->setNext(entry);
         }
         else {
-            fprintf(stderr,"Id %s 重定义\n", name.c_str());
+            fprintf(stderr,"Id %s 重定义!\n", name.c_str());
             return false;
         }
     }

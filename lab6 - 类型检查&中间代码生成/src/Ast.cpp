@@ -151,70 +151,6 @@ void UnaryExpr::genCode() {
     */
 }
 
-BinaryExpr::BinaryExpr(SymbolEntry* se, int op, ExprNode* expr1, ExprNode* expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2) {
-    dst = new Operand(se);
-    std::string op_str;
-    switch (op) {
-        case ADD:
-            op_str = "+";
-            break;
-        case SUB:
-            op_str = "-";
-            break;
-        case MUL:
-            op_str = "*";
-            break;
-        case DIV:
-            op_str = "/";
-            break;
-        case MOD:
-            op_str = "%";
-            break;
-        case AND:
-            op_str = "&&";
-            break;
-        case OR:
-            op_str = "||";
-            break;
-        case LESS:
-            op_str = "<";
-            break;
-        case LESSEQUAL:
-            op_str = "<=";
-            break;
-        case GREATER:
-            op_str = ">";
-            break;
-        case GREATEREQUAL:
-            op_str = ">=";
-            break;
-        case EQUAL:
-            op_str = "==";
-            break;
-        case NOTEQUAL:
-            op_str = "!=";
-            break;
-    }
- 
-    //对于cond需要隐式转换
-    if (op >= BinaryExpr::AND && op <= BinaryExpr::NOTEQUAL) {
-        type = TypeSystem::boolType;
-        if (op == BinaryExpr::AND || op == BinaryExpr::OR) {
-            if (expr1->getType()->isInt() && expr1->getType()->getSize() == 32) {
-                ImplictCastExpr* temp = new ImplictCastExpr(expr1);
-                this->expr1 = temp;
-            }
-            if (expr2->getType()->isInt() && expr2->getType()->getSize() == 32) {
-                ImplictCastExpr* temp = new ImplictCastExpr(expr2);
-                this->expr2 = temp;
-            }
-        }
-    } 
-    else {
-        type = TypeSystem::intType;
-    }
-};
-
 void BinaryExpr::genCode() {
     BasicBlock* bb = builder->getInsertBB();
     Function* func = bb->getParent();
@@ -502,10 +438,10 @@ void SeqNode::genCode() {
 // 这个也太难了吧
 void DeclStmt::genCode() {
     IdentifierSymbolEntry* se = dynamic_cast<IdentifierSymbolEntry*>(id->getSymbolEntry());
-    // 全局变量插入unit中 单独处理
-    if (se->isGlobal()) {
-        Operand* addr;
-        SymbolEntry* addr_se;
+    Operand* addr;
+    SymbolEntry* addr_se;
+    
+    if (se->isGlobal()) {  // 全局变量插入unit中 单独处理
         addr_se = new IdentifierSymbolEntry(*se);
         addr_se->setType(new PointerType(se->getType()));
         addr = new Operand(addr_se);
@@ -513,15 +449,10 @@ void DeclStmt::genCode() {
         unit.insertGlobal(se);
         mUnit.insertGlobal(se);
     } 
-    else if (se->isLocal() || se->isParam()) 
-    {
-        //对于局部变量或者参数 
-        //要先分配空间AllocaInstruction
+    else if (se->isLocal()) {  // 对于局部变量或者参数, 要先分配空间AllocaInstruction
         Function* func = builder->getInsertBB()->getParent();
         BasicBlock* entry = func->getEntry();
         Instruction* alloca;
-        Operand* addr;
-        SymbolEntry* addr_se;
         Type* type;
        
         type = new PointerType(se->getType());
@@ -529,27 +460,43 @@ void DeclStmt::genCode() {
         addr = new Operand(addr_se);
         alloca = new AllocaInstruction(addr, se);
         entry->insertFront(alloca);
-        //如果是参数还需要stroe
-        Operand* temp = nullptr;
-        if (se->isParam())
-        {
-            temp = se->getAddr();
-            BasicBlock* bb = builder->getInsertBB();
-            new StoreInstruction(addr, temp, bb);
-        }
-        se->setAddr(addr);  
-        //如果有初始值 需要再插入store                   
-        if (expr) 
-        {
+        se->setAddr(addr);
+
+        if (expr) {  // 如果有初始值 需要再插入store指令
             BasicBlock* bb = builder->getInsertBB();
             expr->genCode();
             Operand* src = expr->getOperand();
             new StoreInstruction(addr, src, bb);
         }
-
     }
-    //参数时需要使用next去下一个参数
-    if (this->getNext()) {
+    else if (se->isParam()) {  // 对于局部变量或者参数, 要先分配空间AllocaInstruction
+        Function* func = builder->getInsertBB()->getParent();
+        BasicBlock* entry = func->getEntry();
+        Instruction* alloca;
+        Type* type;
+       
+        type = new PointerType(se->getType());
+        addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());
+        addr = new Operand(addr_se);
+        alloca = new AllocaInstruction(addr, se);
+        entry->insertFront(alloca);
+
+        // 如果是参数还需要stroe
+        Operand* temp = nullptr;
+        temp = se->getAddr();
+        BasicBlock* bb = builder->getInsertBB();
+        new StoreInstruction(addr, temp, bb);
+        se->setAddr(addr);
+
+        if (expr) {  // 如果有初始值 需要再插入store指令
+            BasicBlock* bb = builder->getInsertBB();
+            expr->genCode();
+            Operand* src = expr->getOperand();
+            new StoreInstruction(addr, src, bb);
+        }
+    }
+    
+    if (this->getNext()) {  // 为参数时需要使用next去下一个参数
         this->getNext()->genCode();
     }
 
@@ -918,6 +865,7 @@ void CallExpr::genCode() {
     new CallInstruction(dst, symbolEntry, operands, bb);
 }
 
+// TODO
 void AssignStmt::genCode() {
     BasicBlock* bb = builder->getInsertBB();
     expr->genCode();
@@ -933,10 +881,7 @@ void AssignStmt::genCode() {
     Operand* src = expr->getOperand();
     // We haven't implemented array yet, the lval can only be ID. So we just store the result of the `expr` to the addr of the id.
     // If you want to implement array, you have to caculate the address first and then store the result into it.
-    new StoreInstruction(addr, src, bb);
-
-
-    // 看起来需要补充数组
+    new StoreInstruction(addr, src, bb);  // 最后生成一条store指令
 }
 
 void ImplictCastExpr::genCode() {
@@ -1212,9 +1157,9 @@ bool FunctionDef::typeCheck(Type* retType) {
     Type* ret = ((FunctionType*)(se->getType()))->getRetType();
     StmtNode* stmt = this->stmt;
     if (stmt == nullptr) {
-        if (ret != TypeSystem::voidType)
-            fprintf(stderr, "non-void function does not return a value\n");
-        // 不嵌套函数定义就返回了
+        if (ret != TypeSystem::voidType) {
+            fprintf(stderr, "函数 %s 需要返回值!\n", se->toStr().c_str());
+        }
         return false;
     }
     if (!stmt->typeCheck(ret)) {
@@ -1242,6 +1187,8 @@ bool FunctionDef::typeCheck(Type* retType) {
 }
 
 bool CallExpr::typeCheck(Type* retType) {
+    // 放到构造函数去检查了
+
     /*
     // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
     bool flag = 0;
@@ -1295,7 +1242,6 @@ bool CallExpr::typeCheck(Type* retType) {
         // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymbolEntry()->toStr().c_str());
     }
     */
-
     return false;
 }
 
@@ -1640,7 +1586,29 @@ int Id::getValue() {
 
 
 
-//------------------------------------------  一些额外的函数  ------------------------------------------//
+//------------------------------------------  一些构造函数  ------------------------------------------//
+
+BinaryExpr::BinaryExpr(SymbolEntry* se, int op, ExprNode* expr1, ExprNode* expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2) {
+    dst = new Operand(se);
+ 
+    //对于cond需要隐式转换
+    if (op >= BinaryExpr::AND && op <= BinaryExpr::NOTEQUAL) {
+        type = TypeSystem::boolType;
+        if (op == BinaryExpr::AND || op == BinaryExpr::OR) {
+            if (expr1->getType()->isInt() && expr1->getType()->getSize() == 32) {
+                ImplictCastExpr* temp = new ImplictCastExpr(expr1);
+                this->expr1 = temp;
+            }
+            if (expr2->getType()->isInt() && expr2->getType()->getSize() == 32) {
+                ImplictCastExpr* temp = new ImplictCastExpr(expr2);
+                this->expr2 = temp;
+            }
+        }
+    } 
+    else {
+        type = TypeSystem::intType;
+    }
+};
 
 CallExpr::CallExpr(SymbolEntry* se, ExprNode* param) : ExprNode(se), param(param) {
     // 做参数的检查
