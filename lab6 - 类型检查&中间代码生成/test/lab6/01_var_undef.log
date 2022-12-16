@@ -1,4 +1,7 @@
 identifier "a" is undefined
-compiler: src/parser.y:86: int yyparse(): Assertion `se != nullptr' failed.
+
+语法树构建完成
+==========================================================
+
 timeout: the monitored command dumped core
-Aborted
+Segmentation fault

@@ -1,3 +1,7 @@
+declare i32 @getint()
+declare i32 @getch()
+declare void @putint(i32)
+declare void @putch(i32)
 define i32 @main() {
 B11:
   %t13 = alloca i32, align 4

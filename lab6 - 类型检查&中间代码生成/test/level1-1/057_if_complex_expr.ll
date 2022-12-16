@@ -1,4 +1,7 @@
+declare i32 @getint()
+declare i32 @getch()
 declare void @putint(i32)
+declare void @putch(i32)
 define i32 @main() {
 B42:
   %t47 = alloca i32, align 4
@@ -19,7 +22,7 @@ B42:
   br i1 %t14, label %B48, label %B53
 B48:                               	; preds = %B42, %B54
   %t25 = load i32, i32* %t47, align 4
-  call void @putint(i32 %t25)
+call void @putint(i32 %t25)
   br label %B49
 B53:                               	; preds = %B42
   br label %B50
@@ -38,7 +41,7 @@ B50:                               	; preds = %B53
 B61:                               	; preds = %B49, %B67
   store i32 4, i32* %t47, align 4
   %t41 = load i32, i32* %t47, align 4
-  call void @putint(i32 %t41)
+call void @putint(i32 %t41)
   br label %B62
 B66:                               	; preds = %B49
   br label %B63

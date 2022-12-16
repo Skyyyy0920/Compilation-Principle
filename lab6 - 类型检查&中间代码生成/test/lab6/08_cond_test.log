@@ -2,12 +2,17 @@
 语法树构建完成
 ==========================================================
 
-WhileStmt条件判断表达式类型为int, 隐式类型转换为bool
-WhileStmt条件判断表达式类型为int, 隐式类型转换为bool
-IfStmt条件判断表达式类型为int, 隐式类型转换为bool
 
 类型检查完成
 ==========================================================
 
-timeout: the monitored command dumped core
-Segmentation fault
+
+中间代码生成完成
+==========================================================
+
+
+中间代码输出完成
+==========================================================
+
+warning: overriding the module target triple with x86_64-pc-linux-gnu [-Woverride-module]
+1 warning generated.

@@ -1,4 +1,7 @@
 declare i32 @getint()
+declare i32 @getch()
+declare void @putint(i32)
+declare void @putch(i32)
 define i32 @main() {
 B23:
   %t26 = alloca i32, align 4
@@ -8,11 +11,11 @@ B23:
   store i32 0, i32* %t26, align 4
   br label %B27
 B27:                               	; preds = %B23, %B28
-%t3 =   call i32 @getint()
+  %t3 = call i32 @getint()
   %t4 = icmp ne i32 %t3, 0
   br i1 %t4, label %B28, label %B31
 B28:                               	; preds = %B27
-%t7 =   call i32 @getint()
+  %t7 = call i32 @getint()
   %t5 = load i32, i32* %t25, align 4
   %t6 = getelementptr inbounds [100 x i32], [100 x i32]* %t24, i32 0, i32 %t5
   store i32 %t7, i32* %t6, align 4

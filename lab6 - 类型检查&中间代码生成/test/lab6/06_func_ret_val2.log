@@ -2,10 +2,20 @@
 语法树构建完成
 ==========================================================
 
-函数 func 缺少 return 语句
+function does not have a return statement
 
 类型检查完成
 ==========================================================
 
-timeout: the monitored command dumped core
-Segmentation fault
+
+中间代码生成完成
+==========================================================
+
+
+中间代码输出完成
+==========================================================
+
+test/lab6/06_func_ret_val2.ll:16:1: error: expected instruction opcode
+}
+^
+1 error generated.

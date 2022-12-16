@@ -1,4 +1,7 @@
+declare i32 @getint()
+declare i32 @getch()
 declare void @putint(i32)
+declare void @putch(i32)
 @k = global i32 0, align 4
 @n = global i32 10, align 4
 define i32 @main() {
@@ -28,7 +31,7 @@ B26:                               	; preds = %B21
   br label %B23
 B23:                               	; preds = %B26
   %t17 = load i32, i32* @k, align 4
-  call void @putint(i32 %t17)
+call void @putint(i32 %t17)
   %t18 = load i32, i32* @k, align 4
   ret i32 %t18
 }

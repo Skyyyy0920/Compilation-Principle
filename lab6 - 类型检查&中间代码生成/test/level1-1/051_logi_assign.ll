@@ -1,12 +1,15 @@
 declare i32 @getint()
+declare i32 @getch()
+declare void @putint(i32)
+declare void @putch(i32)
 @a = global i32 0, align 4
 @b = global i32 0, align 4
 define i32 @main() {
 B16:
   %t17 = alloca i32, align 4
-%t3 =   call i32 @getint()
+  %t3 = call i32 @getint()
   store i32 %t3, i32* @a, align 4
-%t5 =   call i32 @getint()
+  %t5 = call i32 @getint()
   store i32 %t5, i32* @b, align 4
   %t7 = load i32, i32* @a, align 4
   %t8 = load i32, i32* @b, align 4
