@@ -388,8 +388,7 @@ void Id::genCode() {
                     firstFlag = false;
                 }
                 //flag每个参数都要重置
-                if (flag)
-                    flag = false;
+                if (flag) flag = false;
                 //维度要全部换成整数的维度    
                 if (type == TypeSystem::intType ||
                     type == TypeSystem::constIntType)
@@ -1100,23 +1099,24 @@ bool IfElseStmt::typeCheck(Type* retType) {
 }
 
 bool ReturnStmt::typeCheck(Type* retType) {
-    // 与id的检查类似，也放到生成节点的时候去检查吧，在这里检查也有一些不太好解决的问题
-
-    /*
-    // return 语句需要检查操作数和函数声明的返回值类型是否匹配
-    Type *retType = retValue->getSymbolEntry()->getType();  // return语句返回的类型
-    Type *funcType = identifiers->searchFunc()->getType();  // 函数的返回类型
-    if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
-        if (retType != funcType) {
-            fprintf(stderr, "函数类型为 %s, 但返回了一个 %s 类型的表达式\n", funcType->toStr().c_str(), retType->toStr().c_str());
-        }
+    Type* type = retValue->getType();
+    if (!retType) {
+        fprintf(stderr, "expected unqualified-id\n");
+        return true;
     }
-    else {  // 如果最后是return ;
-        if (!funcType->isVoid()) {
-            fprintf(stderr, "函数类型为 %s, 但返回了void\n", retType->toStr().c_str());
-        }
+    if (!retValue && !retType->isVoid()) {
+        fprintf(stderr, "函数返回类型为 %s, 但返回了 void\n", retType->toStr().c_str());
+        return true;
     }
-    */
+    if (retValue && retType->isVoid()) {
+        fprintf(stderr, "函数返回类型为 void, 但返回了 %s\n", type->toStr().c_str());
+        return true;
+    }
+    if (!retValue || !retValue->getSymbolEntry())
+        return true;
+    if (type != retType) {
+        fprintf(stderr, "函数返回类型为 %s, 但返回了 %s\n", retType->toStr().c_str(), type->toStr().c_str());
+    }
     return true;
 }
 
@@ -1166,7 +1166,6 @@ bool WhileStmt::typeCheck(Type* retType) {
 }
 
 bool BreakStmt::typeCheck(Type* retType) {
-    // TODO
     if(whileStmt == nullptr){
         fprintf(stderr, "break语句不处于while循环范围内\n");
     }
@@ -1174,7 +1173,6 @@ bool BreakStmt::typeCheck(Type* retType) {
 }
 
 bool ContinueStmt::typeCheck(Type* retType) {
-    // TODO
     if(whileStmt == nullptr){
         fprintf(stderr, "continue语句不处于while循环范围内\n");
     }
@@ -1220,7 +1218,7 @@ bool FunctionDef::typeCheck(Type* retType) {
         return false;
     }
     if (!stmt->typeCheck(ret)) {
-        fprintf(stderr, "function does not have a return statement\n");
+        fprintf(stderr, "函数 %s 需要返回值!\n", se->toStr().c_str());
         return false;
     }
     return false;
@@ -1674,17 +1672,15 @@ CallExpr::CallExpr(SymbolEntry* se, ExprNode* param) : ExprNode(se), param(param
         ExprNode* temp = param;
         for (auto it = params.begin(); it != params.end(); it++) {
             if (temp == nullptr) {
-                fprintf(stderr, "too few arguments to function %s %s\n", symbolEntry->toStr().c_str(), type->toStr().c_str());
+                fprintf(stderr, "调用函数 %s %s, 参数过少\n", symbolEntry->toStr().c_str(), type->toStr().c_str());
                 break;
-            } else if ((*it)->getKind() != temp->getType()->getKind())
-                fprintf(stderr, "parameter's type %s can't convert to %s\n",
-                        temp->getType()->toStr().c_str(),
-                        (*it)->toStr().c_str());
+            } 
+            else if ((*it)->getKind() != temp->getType()->getKind())
+                fprintf(stderr, "参数类型 %s 无法隐式类型转换为 %s\n", temp->getType()->toStr().c_str(), (*it)->toStr().c_str());
             temp = (ExprNode*)(temp->getNext());
         }
         if (temp != nullptr) {
-            fprintf(stderr, "too many arguments to function %s %s\n",
-                    symbolEntry->toStr().c_str(), type->toStr().c_str());
+            fprintf(stderr, "调用函数 %s %s, 参数过多\n", symbolEntry->toStr().c_str(), type->toStr().c_str());
         }
     }
     if (((IdentifierSymbolEntry*)se)->isSysy()) {

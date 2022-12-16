@@ -6,18 +6,19 @@
     #include <stack>
     extern Ast ast;
 
-    int yylex();
-    int yyerror(char const*);
-
-    ArrayType* arrayType;
-    // int idx;
-    // int* arrayValue;
     std::stack<InitValueListExpr*> stk;
     std::stack<StmtNode*> whileStk;
+    ArrayType* arrayType;
     InitValueListExpr* top;
+    SymbolEntry* curFunc;
+    // int* arrayValue;
+
     int leftCnt = 0;
     int paramNo = 0;
-    SymbolEntry* curFunc;
+    // int idx;
+    
+    int yylex();
+    int yyerror(char const*);
 }
 
 %code requires {
@@ -59,7 +60,7 @@ Program
     }
     ;
 Stmts
-    : Stmt {$$=$1;}
+    : Stmt { $$ = $1; }
     | Stmts Stmt{
         $$ = new SeqNode($1, $2);
     }
@@ -81,18 +82,21 @@ LVal
     : ID {
         SymbolEntry* se;
         se = identifiers->lookup($1);
-        if (se == nullptr) fprintf(stderr, "identifier \"%s\" is undefined\n", (char*)$1);
+        if (se == nullptr) fprintf(stderr, "ID %s 未定义!\n", (char*)$1);
         $$ = new Id(se);
         delete []$1;
     }
     | ID ArrayIndices {
+        // TODO
+        /*
         SymbolEntry* se;
         se = identifiers->lookup($1);
-        if (se == nullptr) fprintf(stderr, "identifier \"%s\" is undefined\n", (char*)$1);
+        if (se == nullptr) fprintf(stderr, "ID %s 未定义!\n", (char*)$1);
         $$ = new Id(se, $2);
         delete []$1;
+        */
     }
-    ; 
+    ;
 AssignStmt
     : LVal ASSIGN Exp SEMICOLON {
         $$ = new AssignStmt($1, $3);
@@ -192,8 +196,9 @@ PrimaryExp  // 表达式最初的右值, 一般为数字0-9, 或者id
         SymbolEntry* se;
         se = identifiers->lookup($1);
         // TODO
-        if (se == nullptr)
-            fprintf(stderr, "function \"%s\" is undefined\n", (char*)$1);
+        if (se == nullptr) {
+            fprintf(stderr, "函数 %s 未定义\n", (char*)$1);
+        }
         else {
             $$ = new CallExpr(se, $3);
         }

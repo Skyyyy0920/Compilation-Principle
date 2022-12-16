@@ -144,7 +144,6 @@ class ImplictCastExpr : public ExprNode
 {
 private:
     ExprNode* expr;
-
 public:
     ImplictCastExpr(ExprNode* expr);
     bool typeCheck(Type* retType = nullptr) { return false; };
@@ -193,10 +192,9 @@ public:
 
 class ExprStmt : public StmtNode
 {
-   private:
+private:
     ExprNode* expr;
-
-   public:
+public:
     ExprStmt(ExprNode* expr) : expr(expr){};
     void output(int level);
     bool typeCheck(Type* retType = nullptr);

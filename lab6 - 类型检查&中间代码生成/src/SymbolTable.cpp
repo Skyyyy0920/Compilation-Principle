@@ -238,24 +238,8 @@ bool SymbolTable::install(std::string name, SymbolEntry* entry) {
     if (entry->getType()->isFunc()) se = identifiers->getPrev()->checkRepeat(name);  // 如果是函数, 需要到上一级符号表去找
     else se = identifiers->checkRepeat(name);
 
-    /*
-    fprintf(stderr, "checkRepeat ");
-    if (entry->getType()->isFunc()) {
-        for (auto it : identifiers->getPrev()->symbolTable) {
-            fprintf(stderr, "%s ", it.first.c_str());
-        }
-    }
-    else {
-        for (auto it : identifiers->symbolTable) {
-            fprintf(stderr, "%s ", it.first.c_str());
-        }
-    }
-    fprintf(stderr, "\n");
-    */
-
     if (se) {  // 判断是否在同一作用域下重复定义
         if (se->getType()->isFunc()) {
-            // fprintf(stderr, "函数 %s 重定义???\n", se->toStr().c_str());
             return se->setNext(entry);
         }
         else {
@@ -266,7 +250,6 @@ bool SymbolTable::install(std::string name, SymbolEntry* entry) {
 
     symbolTable[name] = entry;
     return true;
-
     
     /*
     // 同时检查是否重定义
