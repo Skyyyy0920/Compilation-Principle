@@ -263,8 +263,22 @@ LoadMInstruction::LoadMInstruction(MachineBlock* p, MachineOperand* dst, Machine
     }
 }
 
+void LoadMInstruction::insertExtraInstruction(int num) {\
+    // Load immediate num, eg: ldr r1, =8
+    if (this->use_list[0]->isImm()) {
+        return;
+    }
+
+    fprintf(yyout, "\tldr ");
+    this->def_list[0]->output();
+    fprintf(yyout, ", ");
+    fprintf(yyout, "=%d\n", num);
+}
+
 // Load指令的output打印机器指令
 void LoadMInstruction::output() {
+    insertExtraInstruction(0);
+
     fprintf(yyout, "\tldr ");
     // ldr r1中的r1
     this->def_list[0]->output();
