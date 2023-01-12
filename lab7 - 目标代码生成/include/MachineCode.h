@@ -210,6 +210,7 @@ public:
                       MachineOperand* src3 = nullptr,
                       int cond = MachineInstruction::NONE);
     void output();
+    void insertExtraInstruction(int num);
 };
 
 // mov r0, r5

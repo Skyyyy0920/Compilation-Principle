@@ -309,7 +309,28 @@ StoreMInstruction::StoreMInstruction(MachineBlock* p, MachineOperand* src1, Mach
     }
 }
 
+void StoreMInstruction::insertExtraInstruction(int num) {
+    fprintf(yyout, "\tstr ");
+    this->use_list[0]->output();
+    fprintf(yyout, ", ");
+
+    // store address
+    if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
+        fprintf(yyout, "[");
+    this->use_list[1]->output();
+    if (this->use_list.size() > 2) {
+        fprintf(yyout, ", ");
+        this->use_list[2]->output();
+    }
+
+    if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
+        fprintf(yyout, "]");
+    fprintf(yyout, "\n");
+}
+
 void StoreMInstruction::output() {
+    insertExtraInstruction(1);
+
     fprintf(yyout, "\tstr ");
     this->use_list[0]->output();
     fprintf(yyout, ", ");
