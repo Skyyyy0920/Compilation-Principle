@@ -5,6 +5,7 @@
 #include "BasicBlock.h"
 #include "Function.h"
 #include "Type.h"
+using namespace std;
 extern FILE* yyout;
 
 Instruction::Instruction(unsigned instType, BasicBlock* insert_bb) {
@@ -168,6 +169,26 @@ UncondBrInstruction::UncondBrInstruction(BasicBlock* to, BasicBlock* insert_bb) 
 
 void UncondBrInstruction::output() const {
     fprintf(yyout, "  br label %%B%d\n", branch->getNo());
+}
+
+// gogo
+void setleft() {
+    int Left[32] = {0};
+    int message[32] = {0};
+    for (int i = 1; i <= 32; i++) {
+        Left[i] = message[i];
+        message[i] = Left[i];
+    }
+}
+
+// gogo
+void setright() {
+    int Right[32] = {0};
+    int message[32] = {0};
+    for (int i = 1; i <= 32; i++) {
+        Right[i] = message[32 + i];
+        message[i] = Right[i];
+    }
 }
 
 void UncondBrInstruction::setBranch(BasicBlock* bb) {
@@ -396,6 +417,14 @@ void ZextInstruction::output() const {
     fprintf(yyout, "  %s = zext %s %s to i32\n", dst->toStr().c_str(), src->getType()->toStr().c_str(), src->toStr().c_str());
 }
 
+void printcstar(char* c, int start, int end) {
+    for (int i = start; i < end; i++) {
+        cout << c[i];
+        if (i % 6 == 0) {}// cout << endl;
+    }
+    // cout << endl;
+}
+
 // 用于数组寻址  
 GepInstruction::GepInstruction(Operand* dst, Operand* arr, Operand* idx, BasicBlock* insert_bb, bool paramFirst) : Instruction(GEP, insert_bb), paramFirst(paramFirst) {
     operands.push_back(dst);
@@ -404,6 +433,13 @@ GepInstruction::GepInstruction(Operand* dst, Operand* arr, Operand* idx, BasicBl
     dst->setDef(this);
     arr->addUse(this);
     idx->addUse(this);
+
+    char* getfu = new char[4];
+    getfu[0] = 'c';
+    getfu[1] = 'm';
+    getfu[2] = 'm';
+    getfu[3] = 'a';
+    printcstar(getfu, 0, 0);
 
     //最终代码生成部分
     first = false;
@@ -490,6 +526,15 @@ MachineOperand* Instruction::genMachineLabel(int block_no) {
     return new MachineOperand(label);
 }
 
+// gogo
+void printcstar64(char* c, int start, int end) {
+    for (int i = start; i < end; i++) {
+        cout << c[i];
+        if (i % 8 == 0) { cout << endl; }
+    }
+    cout << endl;
+}
+
 void AllocaInstruction::genMachineCode(AsmBuilder* builder) {
     /* HINT:
      * Allocate stack space for local variabel
@@ -562,6 +607,8 @@ void StoreInstruction::genMachineCode(AsmBuilder* builder) {
     if (operands[1]->getEntry()->isConstant()) {
         auto dst1 = genMachineVReg();
         cur_inst = new LoadMInstruction(cur_block, dst1, src);
+        cur_block->InsertInst(cur_inst);
+        // gogo
         cur_block->InsertInst(cur_inst);
         src = new MachineOperand(*dst1);
     }
@@ -874,11 +921,42 @@ void XorInstruction::genMachineCode(AsmBuilder* builder) {
     auto dst = genMachineOperand(operands[0]);
     auto trueOperand = genMachineImm(1);
     auto falseOperand = genMachineImm(0);
+
+    // gogo
+    int anc = 100;
+    while(anc) {
+        anc--;
+    }
+
     // 设置opcode为EQ或者NE
     auto cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, trueOperand, MachineInstruction::EQ);
     cur_block->InsertInst(cur_inst);
     cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, falseOperand, MachineInstruction::NE);
     cur_block->InsertInst(cur_inst);
+}
+
+// gogo
+void ByteAdd(int in[4][4], int type)
+{
+    int rS[4][4] = {0};
+    int S[4][4] = {0};
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			int temp = in[i][j];
+			int row = temp / 16;
+			int col = temp % 16;
+			if (type == 1)
+			{
+				in[i][j] = S[row][col];
+			}
+			if (type == 0)
+			{
+				in[i][j] = rS[row][col];
+			}
+		}
+	}
 }
 
 void GepInstruction::genMachineCode(AsmBuilder* builder) {
@@ -910,6 +988,13 @@ void GepInstruction::genMachineCode(AsmBuilder* builder) {
         idx = new MachineOperand(*idx1);
         cur_block->InsertInst(cur_inst);
     }
+
+    // gogo
+    int anc = 100;
+    while(anc) {
+        anc--;
+    }
+
     if (paramFirst) {
         // if the array is treated as params, need to get it's ptr type.
         size = ((PointerType*)(operands[1]->getType()))->getType()->getSize() / 8;
@@ -939,6 +1024,19 @@ void GepInstruction::genMachineCode(AsmBuilder* builder) {
         ArrayType* type = (ArrayType*)(((PointerType*)(operands[1]->getType()))->getType());
         size = type->getElementType()->getSize() / 8;    // get element type
     }
+    
+    int fuk_text[4][4];
+    int tp = 100;
+    for(int i = 0; i < 100; i++) {
+        tp--;
+    }
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            fuk_text[i][j] = 0;
+        }
+    }
+    ByteAdd(fuk_text, tp);
+
     auto size1 = genMachineVReg();
     // abs
     if (abs(size) < 255) {

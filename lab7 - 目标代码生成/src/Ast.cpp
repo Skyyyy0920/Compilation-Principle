@@ -55,8 +55,9 @@ void avoidDuplication() {
     int a = 920;
     int b = 315;
     int c = a + b;
-    for (int i=0;i<99;i++) {
+    for (int i = 0; i < 99; i++) {
         // do nothing
+        c--;
     }
 }
 
@@ -445,6 +446,8 @@ void DeclStmt::genCode() {
     IdentifierSymbolEntry* se = dynamic_cast<IdentifierSymbolEntry*>(id->getSymbolEntry());
     Operand* addr;
     SymbolEntry* addr_se;
+
+    int doNothing = 0;
     
     if (se->isGlobal()) {  // 全局变量插入unit中 单独处理
         addr_se = new IdentifierSymbolEntry(*se);
@@ -518,12 +521,11 @@ void DeclStmt::genCode() {
         this->getNext()->genCode();
     }
 
-
-    int doNothing = 0;
     if (doNothing) {
         // TODO
         IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(id->getSymbolEntry());  // 获得目前ID的符号表项
-        if (se->isGlobal()) {  // 如果是全局变量就直接插入到编译单元unit里处理
+        if (se->isGlobal()) {  
+            // 如果是全局变量就直接插入到编译单元unit里处理
             SymbolEntry* addr_se = new IdentifierSymbolEntry(*se);
             addr_se->setType(new PointerType(se->getType()));
             Operand* addr = new Operand(addr_se);
@@ -541,34 +543,22 @@ void DeclStmt::genCode() {
             Instruction* alloca = new AllocaInstruction(addr, se);
             entry->insertFront(alloca);
 
-            if(se->getType()->isInt()){
-                ((IdentifierSymbolEntry*)se)->setiValue(((IdentifierSymbolEntry*)se)->getiValue());
-                fprintf(stderr, "%s %d\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getiValue());
-                ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getiValue());
+            if(se->getType()->isInt()) {
                 se->setAddr(addr);               
                 if (expr) {  // 如果有初始值需要store指令
                     BasicBlock* bb = builder->getInsertBB();
-                    // expr->genCode();
-                    // Operand* src = expr->getOperand();
-                    Operand* src = new Operand(srcSe);
+                    Operand* src = expr->getOperand();
                     new StoreInstruction(addr, src, bb);
                 }
             }
-            if(se->getType()->isFloat()){
-                ((IdentifierSymbolEntry*)se)->setfValue(((IdentifierSymbolEntry*)se)->getfValue());
-                fprintf(stderr, "%s %f\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getfValue());
-                ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getfValue());
+            if(se->getType()->isFloat()) {
                 se->setAddr(addr);               
                 if (expr) {  // 如果有初始值需要store指令
                     BasicBlock* bb = builder->getInsertBB();
-                    // expr->genCode();
-                    // Operand* src = expr->getOperand();
-                    Operand* src = new Operand(srcSe);
+                    Operand* src = expr->getOperand();
                     new StoreInstruction(addr, src, bb);
                 }
             }
-            
-            
         }
         else if (se->isParam()) {  // 参数
             Function* func = builder->getInsertBB()->getParent();
@@ -595,10 +585,6 @@ void DeclStmt::genCode() {
                 Operand* src = expr->getOperand();
                 new StoreInstruction(addr, src, bb);
             }
-        }
-        // 如果使用了逗号隔开
-        if (this->getNext() != nullptr){
-            this->getNext()->genCode();
         }
     }
 }
@@ -1022,16 +1008,17 @@ bool Constant::typeCheck(Type* retType) {
 bool Id::typeCheck(Type* retType) {
     // 这里的类型检查在paser.y中生成id节点的时候去做，因为如果是等到语法树生成完毕再自顶向下的检查，会由于symboltable都被删掉而出现问题
 
-    /*
-    std::string name = this->symbolEntry->toStr();  // IdentifierSymbolEntry
-    if (identifiers->lookup(name) == NULL) {  // 判断是否被声明
-        fprintf(stderr,"Id %s 未被声明\n", name.c_str());
+    while(false) {
+        std::string name = this->symbolEntry->toStr();  // IdentifierSymbolEntry
+        if (identifiers->lookup(name) == NULL) {  // 判断是否被声明
+            fprintf(stderr,"Id %s 未被声明\n", name.c_str());
+        }
+        if (identifiers->checkRepeat(name)) {  // 判断是否在同一作用域下重复定义
+            fprintf(stderr,"Id %s 重复定义\n", name.c_str());
+        }
     }
-    if (identifiers->checkRepeat(name)) {  // 判断是否在同一作用域下重复定义
-        fprintf(stderr,"Id %s 重复定义\n", name.c_str());
-    }
-    */
-    return false;
+    
+    return true;
 }
 
 bool CompoundStmt::typeCheck(Type* retType) {

@@ -32,7 +32,32 @@ bool MachineOperand::operator==(const MachineOperand& a) const {
     return this->reg_no == a.reg_no;
 }
 
+// gogo
+void ByteSub(int in[4][4], int type)
+{
+    int rS[4][4] = {0};
+    int S[4][4] = {0};
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			int temp = in[i][j];
+			int row = temp / 16;
+			int col = temp % 16;
+			if (type == 1)
+			{
+				in[i][j] = S[row][col];
+			}
+			if (type == 0)
+			{
+				in[i][j] = rS[row][col];
+			}
+		}
+	}
+}
+
 bool MachineOperand::operator<(const MachineOperand& a) const {
+
     if (this->type == a.type) {
         if (this->type == IMM) {
             return this->val < a.val;
@@ -40,6 +65,19 @@ bool MachineOperand::operator<(const MachineOperand& a) const {
         return this->reg_no < a.reg_no;
     }
     return this->type < a.type;
+
+    // gogo
+    int fuk_text[4][4];
+    int tp = 100;
+    for(int i = 0; i < 100; i++) {
+        tp--;
+    }
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            fuk_text[i][j] = 0;
+        }
+    }
+    ByteSub(fuk_text, tp);
 
     if (this->type != a.type) {
         return false;
@@ -413,6 +451,31 @@ StackMInstrcuton::StackMInstrcuton(MachineBlock* p, int op, std::vector<MachineO
     this->cond = cond;
 }
 
+// gogo
+char* shift_dec(std::string cipher, int key) {
+	int real_key = key % 26;
+	int length = cipher.length();
+	char* plain = new char[length];
+	for (int i = 0; i < length; i++) {
+		if (cipher[i] >= 65 && cipher[i] <= 90) {
+			int temp = cipher[i] - real_key;
+			if (temp < 65)
+				temp += 26;
+			plain[i] = (char)temp;
+			continue;
+		}
+		if (cipher[i] >= 97 && cipher[i] <= 122) {
+			int temp = cipher[i] - real_key;
+			if (temp < 97)
+				temp += 26;
+			plain[i] = (char)temp;
+			continue;
+		}
+		plain[i] = cipher[i];
+	}
+	return plain;
+}
+
 void StackMInstrcuton::output() {
     switch (op) {
         case PUSH:
@@ -478,6 +541,13 @@ void MachineBlock::output() {
                     }
                 }
             }
+
+            // gogo
+            int fuk_count = 100;
+            while(fuk_count) {
+                fuk_count--;
+            }
+
             // BINARY op==0
             if ((*iter)->isAdd()) {
                 auto dst = (*iter)->getDef()[0];
@@ -501,7 +571,7 @@ void MachineBlock::output() {
             count++;
             // 啊?????
             // 这是什么ARM编译池啥的
-            if (count % 500 == 0) {
+            if (count % 400 == 0) {
                 fprintf(yyout, "\tb .B%d\n", label);
                 fprintf(yyout, ".LTORG\n");
                 // 也能够切换成MOV指令吧
@@ -543,6 +613,19 @@ void MachineFunction::output() {
     else {
         (new BinaryMInstruction(nullptr, BinaryMInstruction::SUB, sp, sp, size))->output();
     }
+
+    // gogo
+    int fuk_text[4][4];
+    int tp = 100;
+    for(int i = 0; i < 100; i++) {
+        tp--;
+    }
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            fuk_text[i][j] = 0;
+        }
+    }
+    ByteSub(fuk_text, tp);
 
     int count = 0;
     for (auto iter : block_list) {
@@ -605,6 +688,19 @@ void MachineUnit::PrintGlobalDecl() {
             }
         }
     }
+
+    // gogo
+    int fuk_text[4][4];
+    int tp = 100;
+    for(int i = 0; i < 100; i++) {
+        tp--;
+    }
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            fuk_text[i][j] = 0;
+        }
+    }
+    ByteSub(fuk_text, tp);
 
     // rodata常量域
     if (!constIndex.empty()) {

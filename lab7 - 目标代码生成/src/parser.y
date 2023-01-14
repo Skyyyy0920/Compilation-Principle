@@ -435,6 +435,29 @@ VarDef  // 定义语句
         $$ = new DeclStmt(new Id(se));
         delete []$1;
     }
+    | ID ArrayIndices ASSIGN InitVal
+    {
+        SymbolEntry* se = nullptr;
+        std::vector<int> vec;
+        ExprNode* temp = $2;
+
+        while (temp) {
+            vec.push_back(temp->getValue());
+            temp = (ExprNode*)(temp->getNext());
+        }
+
+        // 获取数组的各个维度??
+        Type* type = TypeSystem::intType;
+        Type* temp1 = new ArrayType(type, vec.back());
+
+        $<se>$ = se;
+
+        ((ArrayType*)type)->setArrayType(temp1);
+        // modified
+        se = new IdentifierSymbolEntry(type, $1, identifiers->getLevel());
+        arrayValue = new int[arrayType->getSize()];
+        notZeroNum = 0;
+    } 
     ;
 ConstDef
     : ID ASSIGN ConstInitVal {
