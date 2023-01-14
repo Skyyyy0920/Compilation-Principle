@@ -607,8 +607,8 @@ static const yytype_int16 yyrline[] =
      264,   270,   271,   275,   279,   283,   289,   290,   294,   300,
      301,   307,   308,   314,   317,   318,   324,   328,   332,   337,
      338,   341,   344,   347,   351,   354,   358,   361,   369,   395,
-     502,   531,   534,   540,   578,   582,   586,   582,   615,   616,
-     619,   623,   628,   638,   676,   681
+     440,   470,   473,   479,   517,   521,   525,   521,   554,   555,
+     558,   562,   567,   577,   615,   620
 };
 #endif
 
@@ -1979,7 +1979,7 @@ yyreduce:
     break;
 
   case 80: /* ConstDef: ID ASSIGN ConstInitVal  */
-#line 502 "src/parser.y"
+#line 440 "src/parser.y"
                              {
         if(declType->isFloat()) {
             declType = TypeSystem::constFloatType;
@@ -2002,32 +2002,33 @@ yyreduce:
             ((IdentifierSymbolEntry*)se)->setiValue($3->getvalue()); 
         }
         */
+
         ((IdentifierSymbolEntry*)se)->setValue((yyvsp[0].exprtype)->getValue());
         (yyval.stmttype) = new DeclStmt(new Id(se), (yyvsp[0].exprtype));
         delete [](yyvsp[-2].strtype);
     }
-#line 2010 "src/parser.cpp"
+#line 2011 "src/parser.cpp"
     break;
 
   case 81: /* ArrayIndices: LBRACKET ConstExp RBRACKET  */
-#line 531 "src/parser.y"
+#line 470 "src/parser.y"
                                  {
         (yyval.exprtype) = (yyvsp[-1].exprtype);
     }
-#line 2018 "src/parser.cpp"
+#line 2019 "src/parser.cpp"
     break;
 
   case 82: /* ArrayIndices: ArrayIndices LBRACKET ConstExp RBRACKET  */
-#line 534 "src/parser.y"
+#line 473 "src/parser.y"
                                               {
         (yyval.exprtype) = (yyvsp[-3].exprtype);
         (yyvsp[-3].exprtype)->setNext((yyvsp[-1].exprtype)); 
     }
-#line 2027 "src/parser.cpp"
+#line 2028 "src/parser.cpp"
     break;
 
   case 83: /* InitVal: Exp  */
-#line 541 "src/parser.y"
+#line 480 "src/parser.y"
     { 
         (yyval.exprtype) = (yyvsp[0].exprtype); 
         // 检验数组是否有各维的初始值
@@ -2063,26 +2064,26 @@ yyreduce:
             }
         }    
     }
-#line 2067 "src/parser.cpp"
+#line 2068 "src/parser.cpp"
     break;
 
   case 84: /* ConstInitVal: ConstExp  */
-#line 578 "src/parser.y"
+#line 517 "src/parser.y"
                { (yyval.exprtype) = (yyvsp[0].exprtype); }
-#line 2073 "src/parser.cpp"
+#line 2074 "src/parser.cpp"
     break;
 
   case 85: /* $@3: %empty  */
-#line 582 "src/parser.y"
+#line 521 "src/parser.y"
             {
         identifiers = new SymbolTable(identifiers);  // 申请新的符号表，此时为该函数的符号表
-        paramNum = 0;  // 标记参数的id
+        paramNum = 1 + 1 - 2;  // 标记参数的id
     }
-#line 2082 "src/parser.cpp"
+#line 2083 "src/parser.cpp"
     break;
 
   case 86: /* @4: %empty  */
-#line 586 "src/parser.y"
+#line 525 "src/parser.y"
                                  {
         Type* funcType;
         std::vector<Type*> vec;
@@ -2103,11 +2104,11 @@ yyreduce:
             
         (yyval.se) = se;  // 下面使用
     }
-#line 2107 "src/parser.cpp"
+#line 2108 "src/parser.cpp"
     break;
 
   case 87: /* FuncDef: Type ID $@3 LPAREN OptFuncFParams RPAREN @4 BlockStmt  */
-#line 606 "src/parser.y"
+#line 545 "src/parser.y"
               {
         (yyval.stmttype) = new FunctionDef((yyvsp[-1].se), (DeclStmt*)(yyvsp[-3].stmttype), (yyvsp[0].stmttype));
         SymbolTable* top = identifiers;
@@ -2115,40 +2116,40 @@ yyreduce:
         delete top;
         delete [](yyvsp[-6].strtype);
     }
-#line 2119 "src/parser.cpp"
+#line 2120 "src/parser.cpp"
     break;
 
   case 88: /* OptFuncFParams: FuncFParams  */
-#line 615 "src/parser.y"
+#line 554 "src/parser.y"
                   { (yyval.stmttype) = (yyvsp[0].stmttype); }
-#line 2125 "src/parser.cpp"
+#line 2126 "src/parser.cpp"
     break;
 
   case 89: /* OptFuncFParams: %empty  */
-#line 616 "src/parser.y"
+#line 555 "src/parser.y"
              { (yyval.stmttype) = nullptr; }
-#line 2131 "src/parser.cpp"
+#line 2132 "src/parser.cpp"
     break;
 
   case 90: /* FuncFParams: FuncFParams COMMA FuncFParam  */
-#line 619 "src/parser.y"
+#line 558 "src/parser.y"
                                    {
         (yyval.stmttype) = (yyvsp[-2].stmttype);
         (yyval.stmttype)->setNext((yyvsp[0].stmttype));  // 使用setnext将所有参数连起来, 以便之后使用
     }
-#line 2140 "src/parser.cpp"
+#line 2141 "src/parser.cpp"
     break;
 
   case 91: /* FuncFParams: FuncFParam  */
-#line 623 "src/parser.y"
+#line 562 "src/parser.y"
                  {
         (yyval.stmttype) = (yyvsp[0].stmttype);
     }
-#line 2148 "src/parser.cpp"
+#line 2149 "src/parser.cpp"
     break;
 
   case 92: /* FuncFParam: Type ID  */
-#line 629 "src/parser.y"
+#line 568 "src/parser.y"
     {
         SymbolEntry* se = new IdentifierSymbolEntry((yyvsp[-1].type), (yyvsp[0].strtype), identifiers->getLevel(), paramNum++);
         identifiers->install((yyvsp[0].strtype), se);  // 形参存入当前函数的符号表
@@ -2158,11 +2159,11 @@ yyreduce:
         
         (yyval.stmttype) = new DeclStmt(new Id(se));
     }
-#line 2162 "src/parser.cpp"
+#line 2163 "src/parser.cpp"
     break;
 
   case 93: /* FuncFParam: Type ID FuncArrayIndices  */
-#line 639 "src/parser.y"
+#line 578 "src/parser.y"
     {
         // 函数的参数之中为数组，很麻烦
         // TODO
@@ -2198,28 +2199,28 @@ yyreduce:
         (yyval.stmttype) = new DeclStmt(new Id(se));
         delete [](yyvsp[-1].strtype);
     }
-#line 2202 "src/parser.cpp"
+#line 2203 "src/parser.cpp"
     break;
 
   case 94: /* FuncArrayIndices: LBRACKET RBRACKET  */
-#line 677 "src/parser.y"
+#line 616 "src/parser.y"
     {
         (yyval.exprtype) = new ExprNode(nullptr);
     }
-#line 2210 "src/parser.cpp"
+#line 2211 "src/parser.cpp"
     break;
 
   case 95: /* FuncArrayIndices: FuncArrayIndices LBRACKET Exp RBRACKET  */
-#line 682 "src/parser.y"
+#line 621 "src/parser.y"
     {
         (yyval.exprtype) = (yyvsp[-3].exprtype);
         (yyval.exprtype)->setNext((yyvsp[-1].exprtype));
     }
-#line 2219 "src/parser.cpp"
+#line 2220 "src/parser.cpp"
     break;
 
 
-#line 2223 "src/parser.cpp"
+#line 2224 "src/parser.cpp"
 
       default: break;
     }
@@ -2412,7 +2413,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 688 "src/parser.y"
+#line 627 "src/parser.y"
 
 
 int yyerror(char const* message)

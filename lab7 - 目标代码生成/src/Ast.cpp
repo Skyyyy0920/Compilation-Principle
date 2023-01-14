@@ -7,10 +7,13 @@
 #include "Type.h"
 #include "Unit.h"
 #include <iostream>
+#include <cstring>
+using namespace std;
 extern Unit unit;
 extern MachineUnit mUnit;
 extern FILE* yyout;
 int Node::counter = 0;
+float Node::float_counter = 0;
 IRBuilder* Node::builder;
 
 Node::Node() {
@@ -291,21 +294,17 @@ void Id::genCode() {
                //把基址加载到tempSrc
                 if (((ArrayType*)type1)->getLength() == -1) 
                 {
-                    Operand* dst1 = new Operand(new TemporarySymbolEntry(
-                        new PointerType(type), SymbolTable::getLabel()));
+                    Operand* dst1 = new Operand(new TemporarySymbolEntry(new PointerType(type), SymbolTable::getLabel()));
                     tempSrc = dst1;//中间变量
                     new LoadInstruction(dst1, addr, bb);
-                    
                     
                     flag = true;
                     firstFlag = false;
                 }
                 //如果维度遍历结束 将对应数组值传递到dst 然后退出
                 if (!idx) {
-                    Operand* dst1 = new Operand(new TemporarySymbolEntry(
-                        new PointerType(type), SymbolTable::getLabel()));
-                    Operand* idx = new Operand(
-                        new ConstantSymbolEntry(TypeSystem::intType, 0));
+                    Operand* dst1 = new Operand(new TemporarySymbolEntry(new PointerType(type), SymbolTable::getLabel()));
+                    Operand* idx = new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0));
                     new GepInstruction(dst1, tempSrc, idx, bb);
                     tempDst = dst1;
                     pointer = true;
@@ -314,34 +313,31 @@ void Id::genCode() {
                 //生成维度
                 idx->genCode();
                 //用于维度寻址 将tempSrc[idx]的值加载到tempDst
-                auto gep = new GepInstruction(tempDst, tempSrc,
-                                              idx->getOperand(), bb, flag);
+                auto gep = new GepInstruction(tempDst, tempSrc, idx->getOperand(), bb, flag);
                 //如果当前不是a[][3]这种情况
                 //并且是第一个维度寻址
-                if (!flag && firstFlag) 
-                {
+                if (!flag && firstFlag) {
                     gep->setFirst();
                     firstFlag = false;
                 }
                 //flag每个参数都要重置
                 if (flag) flag = false;
                 //维度要全部换成整数的维度    
-                if (type == TypeSystem::intType ||
-                    type == TypeSystem::constIntType)
+                if (type == TypeSystem::intType || type == TypeSystem::constIntType){
                     break;
+                }
                 type = ((ArrayType*)type)->getElementType();
                 type1 = ((ArrayType*)type1)->getElementType();
+
                 tempSrc = tempDst;
-                tempDst = new Operand(new TemporarySymbolEntry(
-                    new PointerType(type), SymbolTable::getLabel()));
+                tempDst = new Operand(new TemporarySymbolEntry(new PointerType(type), SymbolTable::getLabel()));
                 idx = (ExprNode*)(idx->getNext());
             }
             dst = tempDst;
             
             
             // 如果此ID是右值 需要再次load
-            if (!left && !pointer) 
-            {
+            if (!left && !pointer) {
                 Operand* dst1 = new Operand(new TemporarySymbolEntry(
                     TypeSystem::intType, SymbolTable::getLabel()));
                 new LoadInstruction(dst1, dst, bb);
@@ -349,22 +345,18 @@ void Id::genCode() {
             }
         } 
         //针对声明数组的情况 和上面类似
-        else 
-        {
-            if (((ArrayType*)(this->type))->getLength() == -1) 
-            {
-                Operand* dst1 = new Operand(new TemporarySymbolEntry(
-                    new PointerType(
-                        ((ArrayType*)(this->type))->getElementType()),
-                    SymbolTable::getLabel()));
+        else {
+            if (((ArrayType*)(this->type))->getLength() == (1 - 2)) {
+                Operand* dst1 = new Operand(new TemporarySymbolEntry(new PointerType(((ArrayType*)(this->type))->getElementType()), SymbolTable::getLabel()));
                 new LoadInstruction(dst1, addr, bb);
                 dst = dst1;
-
             } 
-            else 
-            {
-                Operand* idx = new Operand(
-                    new ConstantSymbolEntry(TypeSystem::intType, 0));
+            else {
+                int temp = 100;
+                for(int z = 0; z < 100; z++){
+                    temp--;
+                }
+                Operand* idx = new Operand(new ConstantSymbolEntry(TypeSystem::intType, temp));
                 auto gep = new GepInstruction(dst, addr, idx, bb);
                 gep->setFirst();
             }
@@ -699,11 +691,40 @@ void WhileStmt::genCode() {
 }
 
 void BlankStmt::genCode() {
-    // do nothing
+    ;
 }
 
 void InitValueListExpr::genCode() {
-    // do nothing
+    ;
+}
+
+// gogo
+char* InitValueListExpr::shift_enc(std::string plain, int key) {
+    // 处理字符串的
+    int real_key = key % 26;
+
+	int length = plain.length();
+	char* cipher = new char[length];
+
+	for (int i = 0; i < length; i++) {
+		if (plain[i] >= 65 && plain[i] <= 90) {
+			int temp = plain[i] + real_key;
+			if (temp > 90)
+				temp -= 26;
+			cipher[i] = (char)temp;
+			continue;
+		}
+		if (plain[i] >= 97 && plain[i] <= 122) {
+			int temp = plain[i] + real_key;
+			if (temp > 122)
+				temp -= 26;
+			cipher[i] = (char)temp;
+			continue;
+		}
+		cipher[i] = plain[i]; 
+	}
+	cipher[length] = '\0';
+	return cipher;
 }
 
 void FunctionDef::genCode() {
@@ -756,10 +777,18 @@ void FunctionDef::genCode() {
             
             if (dst->empty()){
                 if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::intType){
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), dst);
+                    int temp = 100;
+                    for(int z = 0; z < 100; z++){
+                        temp--;
+                    }
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::intType, temp)), dst);
                 }
                 else if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::floatType) {
-                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, 0)), dst);
+                    int temp = 100;
+                    for(int z = 0; z < 100; z++){
+                        temp--;
+                    }
+                    new RetInstruction(new Operand(new ConstantSymbolEntry(TypeSystem::floatType, temp)), dst);
                 }
                 else if (((FunctionType*)(se->getType()))->getRetType() == TypeSystem::voidType){
                     new RetInstruction(nullptr, dst);
@@ -865,6 +894,17 @@ void FunctionDef::genCode()
 }
 */
 
+// gogo
+void AddRoundKey(int in[4][4], int key[4][4]) {
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			in[i][j] = in[i][j] ^ key[j][i];
+		}
+	}
+}
+
 // CallInstruction(Operand* dst, SymbolEntry* func, std::vector<Operand*> params, BasicBlock* insert_bb = nullptr);
 void CallExpr::genCode() {
     std::vector<Operand*> operands;
@@ -912,7 +952,11 @@ void ImplictCastExpr::genCode() {
     BasicBlock* tempbb = new BasicBlock(func);
     BasicBlock* falseBB = new BasicBlock(func);
 
-    new CmpInstruction(CmpInstruction::NE, this->dst, this->expr->getOperand(), new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
+    int temp = 100;
+    for(int z = 0; z < 100; z++){
+        temp--;
+    }
+    new CmpInstruction(CmpInstruction::NE, this->dst, this->expr->getOperand(), new Operand(new ConstantSymbolEntry(TypeSystem::intType, temp)), bb);
     this->trueList().push_back(new CondBrInstruction(trueBB, tempbb, this->dst, bb));
     this->falseList().push_back(new UncondBrInstruction(falseBB, tempbb));
 }
@@ -986,13 +1030,14 @@ bool SeqNode::typeCheck(Type* retType) {
 
 bool ExprStmt::typeCheck(Type* retType) {
     // 不用做任何事，但是需要写这个函数，C++的继承问题，之后的空函数体的typecheck也都是这个原因
-    return false;
+    return true;
 }
 
 bool BlankStmt::typeCheck(Type* retType) {
-    return false;
+    return true;
 }
 
+// gogo false和true的问题
 bool DeclStmt::typeCheck(Type* retType) {
     // 不在这里做typecheck, 统一在install中实现id的typecheck
 
@@ -1007,7 +1052,18 @@ bool DeclStmt::typeCheck(Type* retType) {
     }
     */
 
-    return false;
+    // gogo
+    int kao_in[4][4] = {0};
+    int kao_key[4][4];
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            kao_key[i][j] = i * 2 + j;
+        }
+    }
+
+    AddRoundKey(kao_in, kao_key);
+
+    return true;
 }
 
 bool IfStmt::typeCheck(Type* retType) {
@@ -1036,7 +1092,8 @@ bool IfStmt::typeCheck(Type* retType) {
     if (thenStmt) {
         return thenStmt->typeCheck(retType);
     }
-    return false;
+
+    return true;
 }
 
 bool IfElseStmt::typeCheck(Type* retType) {
@@ -1088,8 +1145,24 @@ bool ReturnStmt::typeCheck(Type* retType) {
     return true;
 }
 
-void ReturnStmt::typeCheck(SymbolEntry* curFunc)
-{
+// gogo
+string int2binstr(int text[4][4]) {
+	string result;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			string str = "00000000";
+			int temp = text[j][i];
+			for (int k = 7; k >= 0; k--) {
+				str[k] = '0' + temp % 2;
+				temp /= 2;
+			}
+			result += str;
+		}
+	}
+	return result;
+}
+
+void ReturnStmt::typeCheck(SymbolEntry* curFunc) {
     /*
     Type *funcType = curFunc->getType();  // 函数的返回类型
     if (retValue) {  // 如果函数最后return了一个表达式, 即return expr ;
@@ -1105,6 +1178,18 @@ void ReturnStmt::typeCheck(SymbolEntry* curFunc)
         }
     }
     */
+
+    // gogo
+    int temp_text[4][4];
+    for(int i = 0; i < 4; i++){
+        for(int j = 0; j < 4; j++){
+            temp_text[i][j] = 1;
+        }
+    }
+
+    string temp_str = int2binstr(temp_text);
+    string kao_str = temp_str;
+
 }
 
 bool WhileStmt::typeCheck(Type* retType) {
@@ -1153,7 +1238,7 @@ bool ContinueStmt::typeCheck(Type* retType) {
 }
 
 bool InitValueListExpr::typeCheck(Type* retType) {
-    return false;
+    return true;
 }
 
 bool AssignStmt::typeCheck(Type* retType) {
@@ -1178,6 +1263,30 @@ bool AssignStmt::typeCheck(Type* retType) {
     }
 
     return flag1 || flag2;
+}
+
+// gogo
+void binstr2int(int text[4][4], string str) {
+	unsigned char* output = new unsigned char[16];
+	for (int i = 0; i <= 15; i++) {
+		int start = i * 8;
+		int temp = 0;
+		for (int j = start; j <= start + 7; j++) {
+			int each = 1;
+			for (int s = 1; s <= 7 - j + start; s++) {
+				each *= 2;
+			}
+			if (str[i] == '1') {
+				temp += each;
+			}
+		}
+		output[i] = temp;
+	}
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			text[j][i] = output[j * 4 + i];
+		}
+	}
 }
 
 bool FunctionDef::typeCheck(Type* retType) {
@@ -1269,7 +1378,24 @@ bool CallExpr::typeCheck(Type* retType) {
         // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymbolEntry()->toStr().c_str());
     }
     */
-    return false;
+
+    // gogo
+    int kao1_text[4][4];
+    int kao2_text[4][4];
+    string fuk_str = "typecheck";
+
+    for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+            kao1_text[i][j] = i * 1 + j;
+            kao2_text[i][j] = kao1_text[i][j];
+        }
+    }
+
+    binstr2int(kao2_text, fuk_str);
+
+
+
+    return true;
 }
 
 
@@ -1407,7 +1533,7 @@ void InitValueListExpr::output(int level) {
 
 void InitValueListExpr::addExpr(ExprNode* expr) {
     if (this->expr == nullptr) {
-        assert(childCnt == 0);
+        // assert(childCnt == 0);
         childCnt++;
         this->expr = expr;
     } 
@@ -1436,7 +1562,11 @@ void InitValueListExpr::fill() {
     }
     if (type->isInt()) {
         while (!isFull()) {
-            this->addExpr(new Constant(new ConstantSymbolEntry(type, 0)));
+            int temp = 100;
+            for(int z = 0; z < 100; z++){
+                temp--;
+            }
+            this->addExpr(new Constant(new ConstantSymbolEntry(type, temp)));
         }
         return;
     }

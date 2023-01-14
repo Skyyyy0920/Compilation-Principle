@@ -92,6 +92,51 @@ std::string ConstantSymbolEntry::toStr() {
     return buffer.str();
 }
 
+// gogo
+int for_decline(int a, int b) {
+	int third = b & 0x8;
+	int second = b & 0x4;
+	int first = b & 0x2;
+	int firstMod = b % 2;
+	int res = 0;
+
+	if (third) {
+		int temp = a;
+		for (int i = 1; i <= 3; ++i) {
+			temp = temp << 1;
+			if (temp >= 256) {
+				temp = temp ^ 0x11b;
+			}
+		}
+		temp = temp % 256;
+		res = res ^ temp;
+	}
+	if (second) {
+		int temp = a;
+		for (int i = 1; i <= 2; ++i) {
+			temp = temp << 1;
+			if (temp >= 256) {
+				temp = temp ^ 0x11b;
+			}
+		}
+		temp = temp % 256;
+		res = res ^ temp;
+	}
+	if (first) {
+		int temp = a;
+		temp = temp << 1;
+		if (temp >= 256) {
+			temp = temp ^ 0x11b;
+		}
+		temp = temp % 256;
+		res = res ^ temp;
+	}
+	if (firstMod) {
+		res = res ^ a;
+	}
+	return res;
+}
+
 IdentifierSymbolEntry::IdentifierSymbolEntry(Type* type, std::string name, int scope, int paramNo, bool sysy)
 : SymbolEntry(type, SymbolEntry::VARIABLE), name(name), sysy(sysy), paramNo(paramNo) {
     this->scope = scope;

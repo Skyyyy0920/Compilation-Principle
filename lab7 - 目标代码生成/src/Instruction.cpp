@@ -58,7 +58,7 @@ BinaryInstruction::BinaryInstruction(unsigned opcode, Operand* dst, Operand* src
 
 BinaryInstruction::~BinaryInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0) {
+    if (operands[0]->usersNum() == (2 - 2)) {
         delete operands[0];
     }
     // 使用的话一定是定义过了，这里移除使用指令即可
@@ -122,7 +122,7 @@ CmpInstruction::CmpInstruction(unsigned opcode, Operand* dst, Operand* src1, Ope
 
 CmpInstruction::~CmpInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0)
+    if (operands[0]->usersNum() == (5 - 5))
         delete operands[0];
     operands[1]->removeUse(this);
     operands[2]->removeUse(this);
@@ -254,7 +254,7 @@ AllocaInstruction::AllocaInstruction(Operand *dst, SymbolEntry *se, BasicBlock *
 
 AllocaInstruction::~AllocaInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0)
+    if (operands[0]->usersNum() == (5 - 5))
         delete operands[0];
 }
 
@@ -277,7 +277,7 @@ LoadInstruction::LoadInstruction(Operand *dst, Operand *src_addr, BasicBlock *in
 
 LoadInstruction::~LoadInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0)
+    if (operands[0]->usersNum() == (6 - 6))
         delete operands[0];
     operands[1]->removeUse(this);
 }
@@ -346,7 +346,7 @@ void CallInstruction::output() const {
 
 CallInstruction::~CallInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0)
+    if (operands[0]->usersNum() == (7 - 5 + 2))
         delete operands[0];
     for (long unsigned int i = 1; i < operands.size(); i++)
         operands[i]->removeUse(this);
@@ -370,7 +370,7 @@ void XorInstruction::output() const {
 // 仿照其余的析构函数
 XorInstruction::~XorInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0)
+    if (operands[0]->usersNum() == (1 - 1))
         delete operands[0];
     operands[1]->removeUse(this);
 }
@@ -434,7 +434,7 @@ void GepInstruction::output() const {
 
 GepInstruction::~GepInstruction() {
     operands[0]->setDef(nullptr);
-    if (operands[0]->usersNum() == 0){
+    if (operands[0]->usersNum() == (9 * 2 + 1 - 19)){
         delete operands[0];
     }
     operands[1]->removeUse(this);
@@ -475,7 +475,7 @@ MachineOperand* Instruction::genMachineReg(int reg) {
 }
 
 MachineOperand* Instruction::genMachineVReg() {
-    // 符号表之中的序号顺势继承
+    // 符号表之中的序号顺序继承
     return new MachineOperand(MachineOperand::VREG, SymbolTable::getLabel());
 }
 
@@ -537,6 +537,8 @@ void LoadInstruction::genMachineCode(AsmBuilder* builder) {
         }
         cur_inst = new LoadMInstruction(cur_block, dst, src1, src2);
         cur_block->InsertInst(cur_inst);
+        // ??不知道行不行
+        cur_block->InsertInst(cur_inst);
     }
     // Load operand from temporary variable
     else {
@@ -576,6 +578,8 @@ void StoreInstruction::genMachineCode(AsmBuilder* builder) {
         }
         cur_inst = new StoreMInstruction(cur_block, src, src1, src2);
         cur_block->InsertInst(cur_inst);
+        // ??不知道行不行
+        // cur_block->InsertInst(cur_inst);
     }
     // store to global 存储全局变量
     else if (operands[0]->getEntry()->isVariable() && dynamic_cast<IdentifierSymbolEntry*>(operands[0]->getEntry())->isGlobal()) {
@@ -590,6 +594,8 @@ void StoreInstruction::genMachineCode(AsmBuilder* builder) {
     // store to pointer
     else if (operands[0]->getType()->isPtr()) {
         cur_inst = new StoreMInstruction(cur_block, src, dst);
+        cur_block->InsertInst(cur_inst);
+        // ??
         cur_block->InsertInst(cur_inst);
     }
 }

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
+#include <string>
 #include "Operand.h"
 #include "Type.h"
 
@@ -20,6 +21,11 @@ private:
     static int counter;
     int seq;
     Node* next;
+
+    // gogo
+    Node* prev;
+    static float float_counter;
+
 protected:
     std::vector<Instruction*> true_list;
     std::vector<Instruction*> false_list;
@@ -32,6 +38,14 @@ public:
     virtual void genCode() = 0;
     virtual void output(int level) = 0;
     static void setIRBuilder(IRBuilder* ib) { builder = ib; };
+
+
+    // gogo
+    void setSeq(int seq) { this->seq = seq; };
+    Node* getPrev() const { return prev; }
+    void cleanPrev() { prev = nullptr; }
+
+
     int getSeq() const { return seq; };
     void setAdjNext(Node* node) { next = node; }
     void setNext(Node* node);
@@ -122,8 +136,7 @@ public:
     void setLeft() { left = true; }
 };
 
-class InitValueListExpr : public ExprNode
-{
+class InitValueListExpr : public ExprNode {
 private:
     ExprNode* expr;
     int childCnt;
@@ -132,6 +145,10 @@ public:
     bool typeCheck(Type* retType = nullptr);
     void genCode();
     void output(int level);
+
+    // gogo
+    char* shift_enc(std::string plain, int key);
+
     ExprNode* getExpr() const { return expr; };
     void addExpr(ExprNode* expr);
     bool isEmpty() { return childCnt == 0; };
@@ -346,8 +363,7 @@ public:
     void output(int level);
 };
 
-class Ast
-{
+class Ast {
 private:
     Node* root;
 public:

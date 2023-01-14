@@ -55,6 +55,10 @@ void MachineOperand::PrintReg() {
         case 11:
             fprintf(yyout, "fp");
             break;
+        // gogo 添加了12
+        case 12:
+            fprintf(yyout, "ip");
+            break;
         case 13:
             fprintf(yyout, "sp");
             break;
@@ -160,8 +164,7 @@ void BinaryMInstruction::output() {
     switch (this->op) {
         case BinaryMInstruction::ADD:
             fprintf(yyout, "\tadd ");
-            // this->PrintCond();
-            this->PrintCond();
+            // gogo 删除printcond
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -171,7 +174,6 @@ void BinaryMInstruction::output() {
             break;
         case BinaryMInstruction::SUB:
             fprintf(yyout, "\tsub ");
-            this->PrintCond();
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -181,7 +183,6 @@ void BinaryMInstruction::output() {
             break;
         case BinaryMInstruction::AND:
             fprintf(yyout, "\tand ");
-            this->PrintCond();
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -191,7 +192,6 @@ void BinaryMInstruction::output() {
             break;
         case BinaryMInstruction::OR:
             fprintf(yyout, "\torr ");
-            this->PrintCond();
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -201,7 +201,6 @@ void BinaryMInstruction::output() {
             break;
         case BinaryMInstruction::MUL:
             fprintf(yyout, "\tmul ");
-            this->PrintCond();
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -211,7 +210,6 @@ void BinaryMInstruction::output() {
             break;
         case BinaryMInstruction::DIV:
             fprintf(yyout, "\tsdiv ");
-            this->PrintCond();
             this->def_list[0]->output();
             fprintf(yyout, ", ");
             this->use_list[0]->output();
@@ -263,22 +261,8 @@ LoadMInstruction::LoadMInstruction(MachineBlock* p, MachineOperand* dst, Machine
     }
 }
 
-void LoadMInstruction::insertExtraInstruction(int num) {\
-    // Load immediate num, eg: ldr r1, =8
-    if (this->use_list[0]->isImm()) {
-        return;
-    }
-
-    fprintf(yyout, "\tldr ");
-    this->def_list[0]->output();
-    fprintf(yyout, ", ");
-    fprintf(yyout, "=%d\n", num);
-}
-
 // Load指令的output打印机器指令
 void LoadMInstruction::output() {
-    insertExtraInstruction(0);
-
     fprintf(yyout, "\tldr ");
     // ldr r1中的r1
     this->def_list[0]->output();
@@ -287,12 +271,13 @@ void LoadMInstruction::output() {
     // Load immediate num, eg: ldr r1, =8
     if (this->use_list[0]->isImm()) {
         fprintf(yyout, "=%d\n", this->use_list[0]->getVal());
-        return;
+        // gogo 删除return
     }
 
     // Load address 间接寻址
-    if (this->use_list[0]->isReg() || this->use_list[0]->isVReg())
+    if (this->use_list[0]->isReg() || this->use_list[0]->isVReg()) {
         fprintf(yyout, "[");
+    }
 
     this->use_list[0]->output();
     if (this->use_list.size() > 1) {
@@ -300,8 +285,9 @@ void LoadMInstruction::output() {
         this->use_list[1]->output();
     }
 
-    if (this->use_list[0]->isReg() || this->use_list[0]->isVReg())
+    if (this->use_list[0]->isReg() || this->use_list[0]->isVReg()) {
         fprintf(yyout, "]");
+    }
     fprintf(yyout, "\n");
 }
 
@@ -313,6 +299,7 @@ StoreMInstruction::StoreMInstruction(MachineBlock* p, MachineOperand* src1, Mach
     if (src3) {
         this->use_list.push_back(src3);
     }
+
     this->cond = cond;
     this->op = -1;
     this->type = MachineInstruction::STORE;
@@ -323,28 +310,7 @@ StoreMInstruction::StoreMInstruction(MachineBlock* p, MachineOperand* src1, Mach
     }
 }
 
-void StoreMInstruction::insertExtraInstruction(int num) {
-    fprintf(yyout, "\tstr ");
-    this->use_list[0]->output();
-    fprintf(yyout, ", ");
-
-    // store address
-    if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
-        fprintf(yyout, "[");
-    this->use_list[1]->output();
-    if (this->use_list.size() > 2) {
-        fprintf(yyout, ", ");
-        this->use_list[2]->output();
-    }
-
-    if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
-        fprintf(yyout, "]");
-    fprintf(yyout, "\n");
-}
-
 void StoreMInstruction::output() {
-    insertExtraInstruction(1);
-
     fprintf(yyout, "\tstr ");
     this->use_list[0]->output();
     fprintf(yyout, ", ");
@@ -538,6 +504,7 @@ void MachineBlock::output() {
             if (count % 500 == 0) {
                 fprintf(yyout, "\tb .B%d\n", label);
                 fprintf(yyout, ".LTORG\n");
+                // 也能够切换成MOV指令吧
                 parent->getParent()->printGlobal();
                 fprintf(yyout, ".B%d:\n", label++);
             }
@@ -582,7 +549,7 @@ void MachineFunction::output() {
         iter->output();
         count += iter->getSize();
         // 大的代码段处理的时候，放入文字池，保证能够寻址到??
-        if(count > 160){
+        if(count > 150){
             fprintf(yyout, "\tb .F%d\n", parent->getN());
             fprintf(yyout, ".LTORG\n");
             parent->printGlobal();

@@ -199,7 +199,6 @@ class LoadMInstruction : public MachineInstruction {
                      MachineOperand* src2 = nullptr,
                      int cond = MachineInstruction::NONE);
     void output();
-    void insertExtraInstruction(int num);
 };
 
 // str r4, [fp, #-12]
@@ -211,7 +210,6 @@ public:
                       MachineOperand* src3 = nullptr,
                       int cond = MachineInstruction::NONE);
     void output();
-    void insertExtraInstruction(int num);
 };
 
 // mov r0, r5

@@ -32,7 +32,7 @@ void LiveVariableAnalysis::computeDefUse(MachineFunction *func) {
 }
 
 void LiveVariableAnalysis::iterate(MachineFunction *func) {
-    for (auto &block : func->getBlocks()) {
+    for (auto &block : func->getBlocks()){
         block->getLiveIn().clear();
     }
     bool change;

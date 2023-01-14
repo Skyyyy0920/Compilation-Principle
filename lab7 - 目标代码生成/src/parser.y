@@ -435,68 +435,6 @@ VarDef  // 定义语句
         $$ = new DeclStmt(new Id(se));
         delete []$1;
     }
-
-    // 数组的初始化??
-    /*
-    | ID ArrayIndices ASSIGN {
-        SymbolEntry* se;
-        ExprNode* temp = $2;
-        std::vector<int> vec;
-        // 获取数组的各个维度??
-        while (temp) {
-            vec.push_back(temp->getValue());
-            temp = (ExprNode*)(temp->getNext());
-        }
-        // modified
-        // 同仅仅对数组的定义
-        Type* type = TypeSystem::intType;
-        Type* temp1;   
-        
-        while(!vec.empty()) {
-            // 数组一层一层的类型存储
-            temp1 = new ArrayType(type, vec.back());
-            // 考虑多维数组，每个元素是数组指针
-            // 如果元素是数组，type设置为数组维度
-            if(type->isArray()) {
-                ((ArrayType*)type)->setArrayType(temp1);
-            }
-
-            type = temp1;
-            vec.pop_back();
-        }
-        
-        for(auto iter= vec.rbegin(); iter != vec.rend(); iter++) {
-            temp1 = new ArrayType(type, *iter);
-            if (type->isArray())
-                ((ArrayType*)type)->setArrayType(temp1);
-            type = temp1;
-        }
-
-        arrayType = (ArrayType*)type;
-        ArrayIndex = 0;
-        std::stack<InitValueListExpr*>().swap(ArrayStk);
-
-        se = new IdentifierSymbolEntry(type, $1, identifiers->getLevel());
-        $<se>$ = se;
-        // $$ = se;
-        // ??
-        // arrayValue = new double[arrayType->getSize()];
-        arrayValue = new int[arrayType->getSize()];
-        notZeroNum = 0;
-    } InitVal {
-        // modiefied ??
-        ((IdentifierSymbolEntry*)$<se>4)->setArrayValue(arrayValue);
-        ((IdentifierSymbolEntry*)$<se>4)->setNotZeroNum(notZeroNum);
-
-        if ((notZeroNum == 0) || ((InitValueListExpr*)$5)->isEmpty()) {
-            ((IdentifierSymbolEntry*)$<se>4)->setAllZero();
-            ((InitValueListExpr*)$5)->setAllZero();
-        }
-
-        $$ = new DeclStmt(new Id($<se>4), $5);
-        delete []$1;
-    }
-    */
     ;
 ConstDef
     : ID ASSIGN ConstInitVal {
@@ -521,6 +459,7 @@ ConstDef
             ((IdentifierSymbolEntry*)se)->setiValue($3->getvalue()); 
         }
         */
+
         ((IdentifierSymbolEntry*)se)->setValue($3->getValue());
         $$ = new DeclStmt(new Id(se), $3);
         delete []$1;
@@ -581,7 +520,7 @@ FuncDef
     :
     Type ID {
         identifiers = new SymbolTable(identifiers);  // 申请新的符号表，此时为该函数的符号表
-        paramNum = 0;  // 标记参数的id
+        paramNum = 1 + 1 - 2;  // 标记参数的id
     }
     LPAREN OptFuncFParams RPAREN {
         Type* funcType;
