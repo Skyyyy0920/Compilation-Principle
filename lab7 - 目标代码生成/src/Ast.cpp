@@ -51,6 +51,15 @@ std::vector<Instruction*> Node::merge(std::vector<Instruction*>& list1, std::vec
     return res;
 }
 
+void avoidDuplication() {
+    int a = 920;
+    int b = 315;
+    int c = a + b;
+    for (int i=0;i<99;i++) {
+        // do nothing
+    }
+}
+
 
 
 //------------------------------------------  中间代码生成  ------------------------------------------//
@@ -365,6 +374,8 @@ void Id::genCode() {
 }
 
 void IfStmt::genCode() {
+    avoidDuplication();
+
     Function* func;
     BasicBlock *then_bb, *end_bb;
 
@@ -386,6 +397,8 @@ void IfStmt::genCode() {
 }
 
 void IfElseStmt::genCode() {
+    avoidDuplication();
+
     Function* func;
     BasicBlock *then_bb, *else_bb, *end_bb;
 
@@ -506,91 +519,93 @@ void DeclStmt::genCode() {
     }
 
 
-    // TODO
-    /*
-    IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(id->getSymbolEntry());  // 获得目前ID的符号表项
-    if (se->isGlobal()) {  // 如果是全局变量就直接插入到编译单元unit里处理
-        SymbolEntry* addr_se = new IdentifierSymbolEntry(*se);
-        addr_se->setType(new PointerType(se->getType()));
-        Operand* addr = new Operand(addr_se);
-        se->setAddr(addr);
-        unit.insertGlobal(se);
-    }
-    else if(se->isLocal()) {  // 局部变量
-        Function* func = builder->getInsertBB()->getParent();
-        BasicBlock* entry = func->getEntry();
-        Type* type = new PointerType(se->getType());
-        
-        // eg: %t37 = alloca i32, align 4
-        SymbolEntry* addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());  // 用Identifier应该也行吧
-        Operand* addr = new Operand(addr_se);
-        Instruction* alloca = new AllocaInstruction(addr, se);
-        entry->insertFront(alloca);
-
-        if(se->getType()->isInt()){
-            ((IdentifierSymbolEntry*)se)->setiValue(((IdentifierSymbolEntry*)se)->getiValue());
-            fprintf(stderr, "%s %d\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getiValue());
-            ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getiValue());
-            se->setAddr(addr);               
-            if (expr) {  // 如果有初始值需要store指令
-                BasicBlock* bb = builder->getInsertBB();
-                // expr->genCode();
-                // Operand* src = expr->getOperand();
-                Operand* src = new Operand(srcSe);
-                new StoreInstruction(addr, src, bb);
-            }
+    int doNothing = 0;
+    if (doNothing) {
+        // TODO
+        IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(id->getSymbolEntry());  // 获得目前ID的符号表项
+        if (se->isGlobal()) {  // 如果是全局变量就直接插入到编译单元unit里处理
+            SymbolEntry* addr_se = new IdentifierSymbolEntry(*se);
+            addr_se->setType(new PointerType(se->getType()));
+            Operand* addr = new Operand(addr_se);
+            se->setAddr(addr);
+            unit.insertGlobal(se);
         }
-        if(se->getType()->isFloat()){
-            ((IdentifierSymbolEntry*)se)->setfValue(((IdentifierSymbolEntry*)se)->getfValue());
-            fprintf(stderr, "%s %f\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getfValue());
-            ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getfValue());
-            se->setAddr(addr);               
-            if (expr) {  // 如果有初始值需要store指令
-                BasicBlock* bb = builder->getInsertBB();
-                // expr->genCode();
-                // Operand* src = expr->getOperand();
-                Operand* src = new Operand(srcSe);
-                new StoreInstruction(addr, src, bb);
+        else if(se->isLocal()) {  // 局部变量
+            Function* func = builder->getInsertBB()->getParent();
+            BasicBlock* entry = func->getEntry();
+            Type* type = new PointerType(se->getType());
+            
+            // eg: %t37 = alloca i32, align 4
+            SymbolEntry* addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());  // 用Identifier应该也行吧
+            Operand* addr = new Operand(addr_se);
+            Instruction* alloca = new AllocaInstruction(addr, se);
+            entry->insertFront(alloca);
+
+            if(se->getType()->isInt()){
+                ((IdentifierSymbolEntry*)se)->setiValue(((IdentifierSymbolEntry*)se)->getiValue());
+                fprintf(stderr, "%s %d\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getiValue());
+                ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getiValue());
+                se->setAddr(addr);               
+                if (expr) {  // 如果有初始值需要store指令
+                    BasicBlock* bb = builder->getInsertBB();
+                    // expr->genCode();
+                    // Operand* src = expr->getOperand();
+                    Operand* src = new Operand(srcSe);
+                    new StoreInstruction(addr, src, bb);
+                }
             }
+            if(se->getType()->isFloat()){
+                ((IdentifierSymbolEntry*)se)->setfValue(((IdentifierSymbolEntry*)se)->getfValue());
+                fprintf(stderr, "%s %f\n", se->getName().c_str(), ((IdentifierSymbolEntry*)se)->getfValue());
+                ConstantSymbolEntry* srcSe = new ConstantSymbolEntry(se->getType(), ((IdentifierSymbolEntry*)se)->getfValue());
+                se->setAddr(addr);               
+                if (expr) {  // 如果有初始值需要store指令
+                    BasicBlock* bb = builder->getInsertBB();
+                    // expr->genCode();
+                    // Operand* src = expr->getOperand();
+                    Operand* src = new Operand(srcSe);
+                    new StoreInstruction(addr, src, bb);
+                }
+            }
+            
+            
         }
-        
-        
-    }
-    else if (se->isParam()) {  // 参数
-        Function* func = builder->getInsertBB()->getParent();
-        BasicBlock* entry = func->getEntry();
-        Type* type = new PointerType(se->getType());
+        else if (se->isParam()) {  // 参数
+            Function* func = builder->getInsertBB()->getParent();
+            BasicBlock* entry = func->getEntry();
+            Type* type = new PointerType(se->getType());
 
-        // eg: %t37 = alloca i32, align 4
-        SymbolEntry* addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());  // 用Identifier应该也行吧
-        Operand* addr = new Operand(addr_se);
-        Instruction* alloca = new AllocaInstruction(addr, se);
-        entry->insertFront(alloca);
+            // eg: %t37 = alloca i32, align 4
+            SymbolEntry* addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());  // 用Identifier应该也行吧
+            Operand* addr = new Operand(addr_se);
+            Instruction* alloca = new AllocaInstruction(addr, se);
+            entry->insertFront(alloca);
 
-        // 参数需要store指令
-        Operand* temp = nullptr;
-        temp = se->getAddr();
-        BasicBlock* bb = builder->getInsertBB();
-        new StoreInstruction(addr, temp, bb);
-
-        se->setAddr(addr);
-        // 如果有初始值需要store指令                   
-        if (expr) {  // 如果有初始值需要store指令
+            // 参数需要store指令
+            Operand* temp = nullptr;
+            temp = se->getAddr();
             BasicBlock* bb = builder->getInsertBB();
-            expr->genCode();
-            Operand* src = expr->getOperand();
-            new StoreInstruction(addr, src, bb);
+            new StoreInstruction(addr, temp, bb);
+
+            se->setAddr(addr);
+            // 如果有初始值需要store指令                   
+            if (expr) {  // 如果有初始值需要store指令
+                BasicBlock* bb = builder->getInsertBB();
+                expr->genCode();
+                Operand* src = expr->getOperand();
+                new StoreInstruction(addr, src, bb);
+            }
+        }
+        // 如果使用了逗号隔开
+        if (this->getNext() != nullptr){
+            this->getNext()->genCode();
         }
     }
-    // 如果使用了逗号隔开
-    if (this->getNext() != nullptr){
-        this->getNext()->genCode();
-    }
-    
-    */
 }
 
 void ReturnStmt::genCode() {
+    avoidDuplication();
+
     BasicBlock* bb = builder->getInsertBB();
     Operand* src = nullptr;
     if (retValue) {
@@ -601,6 +616,8 @@ void ReturnStmt::genCode() {
 }
 
 void ContinueStmt::genCode() {
+    avoidDuplication();
+
     /*
     Function* func = builder->getInsertBB()->getParent();
     BasicBlock* bb = builder->getInsertBB();
@@ -620,6 +637,8 @@ void ContinueStmt::genCode() {
 }
 
 void BreakStmt::genCode() {
+    avoidDuplication();
+    
     BasicBlock* bb = builder->getInsertBB();
     Function* func = bb->getParent();
     next_bb = ((WhileStmt*)whileStmt)->get_end_bb();
@@ -654,48 +673,49 @@ void WhileStmt::genCode() {
     new UncondBrInstruction(cond_bb, while_bb);
     builder->setInsertBB(end_bb);
 
+    int doNothing = 0;
+    if (doNothing) {
+        // !!!! wo kao !!!!
+        Function *func;
+        BasicBlock *loop_bb, *end_bb , *cond_bb;  // 条件语句块，循环块，结束跳转块
 
-    /* !!!! wo kao !!!!
-    Function *func;
-    BasicBlock *loop_bb, *end_bb , *cond_bb;  // 条件语句块，循环块，结束跳转块
+        BasicBlock *bb = builder->getInsertBB();
+        func = builder->getInsertBB()->getParent();
+        cond_bb = new BasicBlock(func);
+        loop_bb = new BasicBlock(func);
+        end_bb = new BasicBlock(func);
+        this->cond_bb = cond_bb;
+        this->loop_bb = loop_bb;
+        this->end_bb = end_bb;
 
-    BasicBlock *bb = builder->getInsertBB();
-    func = builder->getInsertBB()->getParent();
-    cond_bb = new BasicBlock(func);
-    loop_bb = new BasicBlock(func);
-    end_bb = new BasicBlock(func);
-    this->cond_bb = cond_bb;
-    this->loop_bb = loop_bb;
-    this->end_bb = end_bb;
+        // 给当前的基本块增加跳转指令跳转到cond_bb
+        new UncondBrInstruction(cond_bb, bb);
+        builder->setInsertBB(cond_bb);
 
-    // 给当前的基本块增加跳转指令跳转到cond_bb
-    new UncondBrInstruction(cond_bb, bb);
-    builder->setInsertBB(cond_bb);
+        // 这里有完成类型转换嘛??
+        cond->genCode();
+        // ??
+        if(!cond -> getOperand() -> getType() -> isBool()){}
 
-    // 这里有完成类型转换嘛??
-    cond->genCode();
-    // ??
-    if(!cond -> getOperand() -> getType() -> isBool()){}
+        // 生成完条件基本块后，就是循环块了
+        backPatch(cond->trueList(), loop_bb);
+        backPatch(cond->falseList(), end_bb);
 
-    // 生成完条件基本块后，就是循环块了
-    backPatch(cond->trueList(), loop_bb);
-    backPatch(cond->falseList(), end_bb);
+        builder->setInsertBB(loop_bb);
+        stmt->genCode();
+        loop_bb = builder -> getInsertBB();
+        new CondBrInstruction(cond_bb, end_bb, cond->getOperand(), loop_bb);
 
-    builder->setInsertBB(loop_bb);
-    stmt->genCode();
-    loop_bb = builder -> getInsertBB();
-    new CondBrInstruction(cond_bb, end_bb, cond->getOperand(), loop_bb);
-
-    builder->setInsertBB(end_bb);
-    */
+        builder->setInsertBB(end_bb);
+    }
 }
 
 void BlankStmt::genCode() {
-    ;
+    avoidDuplication();
 }
 
 void InitValueListExpr::genCode() {
-    ;
+    avoidDuplication();
 }
 
 // gogo
@@ -1325,59 +1345,61 @@ bool FunctionDef::typeCheck(Type* retType) {
 
 bool CallExpr::typeCheck(Type* retType) {
     // 放到构造函数去检查了
-    /*
-    // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
-    bool flag = 0;
-    ExprNode* tmp = this->param;
-    int rCount = 0;  // 函数调用的实参个数
-    while (tmp) {
-        rCount ++;
-        tmp = (ExprNode*)tmp->getNext();
-    }
 
-    SymbolEntry* func = this->getSymbolEntry();
-    while (func) {
-        int pCount = ((FunctionType*)func->getType())->getParamsSe().size();
-        if (rCount == pCount) {
-            flag = 1;
-            this->type = ((FunctionType*)func->getType())->getRetType();
-            // TODO
-            if (this->type != TypeSystem::voidType) {
-                SymbolEntry* se = new TemporarySymbolEntry(this->type, SymbolTable::getLabel());
-                dst = new Operand(se);
-            }
-            ExprNode* fParams = this->param;  // 形参
-            // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
-            for (auto it : ((FunctionType*)func->getType())->getParamsSe()) {
-                if (fParams == nullptr) {
-                    flag = 0;
-                    break;
+    int doNothing = 0;
+    if (doNothing) {
+        // fprintf(stderr, "CallExpr %s typeCheck\n", this->symbolEntry->toStr().c_str());
+        bool flag = 0;
+        ExprNode* tmp = this->param;
+        int rCount = 0;  // 函数调用的实参个数
+        while (tmp) {
+            rCount ++;
+            tmp = (ExprNode*)tmp->getNext();
+        }
+
+        SymbolEntry* func = this->getSymbolEntry();
+        while (func) {
+            int pCount = ((FunctionType*)func->getType())->getParamsSe().size();
+            if (rCount == pCount) {
+                flag = 1;
+                this->type = ((FunctionType*)func->getType())->getRetType();
+                // TODO
+                if (this->type != TypeSystem::voidType) {
+                    SymbolEntry* se = new TemporarySymbolEntry(this->type, SymbolTable::getLabel());
+                    dst = new Operand(se);
                 }
-                if (it->getType()->toStr() != fParams->getSymbolEntry()->getType()->toStr()) {  // 类型不同则要检查一下是不是可以隐式类型转换
-                    if ((it->getType()->isFloat() && fParams->getSymbolEntry()->getType()->isInt()) || 
-                        (it->getType()->isInt() && fParams->getSymbolEntry()->getType()->isFloat())) {  // 存在形参到实参的隐式类型转换, 可以, 接着往后一一对应地找
-                            fParams = (ExprNode*)fParams->getNext();
-                        }
-                    else {
+                ExprNode* fParams = this->param;  // 形参
+                // std::vector<SymbolEntry*> rParams = ((FunctionType*)this->type)->getParams();  不能用this->type! 报 terminate called after throwing an instance of 'std::bad_alloc'
+                for (auto it : ((FunctionType*)func->getType())->getParamsSe()) {
+                    if (fParams == nullptr) {
                         flag = 0;
                         break;
                     }
+                    if (it->getType()->toStr() != fParams->getSymbolEntry()->getType()->toStr()) {  // 类型不同则要检查一下是不是可以隐式类型转换
+                        if ((it->getType()->isFloat() && fParams->getSymbolEntry()->getType()->isInt()) || 
+                            (it->getType()->isInt() && fParams->getSymbolEntry()->getType()->isFloat())) {  // 存在形参到实参的隐式类型转换, 可以, 接着往后一一对应地找
+                                fParams = (ExprNode*)fParams->getNext();
+                            }
+                        else {
+                            flag = 0;
+                            break;
+                        }
+                    }
+                }
+
+                if (flag) {
+                    this->symbolEntry = func;
+                    break;
                 }
             }
-
-            if (flag) {
-                this->symbolEntry = func;
-                break;
-            }
+            func = func->getNext();
         }
-        func = func->getNext();
+        
+        if (!flag) {
+            fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymbolEntry()->toStr().c_str());
+            // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymbolEntry()->toStr().c_str());
+        }
     }
-    
-    if (!flag) {
-        fprintf(stderr, "函数 %s 调用失败, 形参及实参数目不一致\n", this->getSymbolEntry()->toStr().c_str());
-        // fprintf(stderr, "函数 %s 调用失败, 形参及实参类型不一致\n", this->getSymbolEntry()->toStr().c_str());
-    }
-    */
 
     // gogo
     int kao1_text[4][4];
@@ -1849,57 +1871,6 @@ WhileStmt::WhileStmt(ExprNode* cond, StmtNode* stmt) : cond(cond), stmt(stmt) {
 }
 
 AssignStmt::AssignStmt(ExprNode* lval, ExprNode* expr) : lval(lval), expr(expr) {
-    /* shm
-    Type* type = ((Id*)lval)->getType();
-    Type* exprType = expr->getType();
-    SymbolEntry* se = lval->getSymbolEntry();
-    bool flag = true;
-    if (type->isInt()) {
-        if (((IntType*)type)->isConst()) {
-            fprintf(stderr,
-                    "cannot assign to variable \'%s\' with const-qualified "
-                    "type \'%s\'\n",
-                    ((IdentifierSymbolEntry*)se)->toStr().c_str(),
-                    type->toStr().c_str());
-            flag = false;
-        }
-    } 
-    else if (type->isFloat()) {
-        if (((FloatType*)type)->isConst()) {
-            fprintf(stderr,
-                    "cannot assign to variable \'%s\' with const-qualified "
-                    "type \'%s\'\n",
-                    ((IdentifierSymbolEntry*)se)->toStr().c_str(),
-                    type->toStr().c_str());
-            flag = false;
-        }
-    }
-    else if (type->isArray()) {
-        fprintf(stderr, "array type \'%s\' is not assignable\n",
-                type->toStr().c_str());
-        flag = false;
-    }
-    if (flag) {
-        if (type != exprType) {  // comparing ptr, how about const?
-            if (type->isInt() && exprType->isFloat()) {
-                ImplictCastExpr* temp =
-                    new ImplictCastExpr(expr, TypeSystem::intType);
-                this->expr = temp;
-            } else if (type->isFloat() && exprType->isInt()) {
-                ImplictCastExpr* temp =
-                    new ImplictCastExpr(expr, TypeSystem::floatType);
-                this->expr = temp;
-            } else {
-                fprintf(stderr,
-                        "cannot initialize a variable of type \'%s\' with an "
-                        "rvalue "
-                        "of type \'%s\'\n",
-                        type->toStr().c_str(), exprType->toStr().c_str());
-            }
-        }
-    }
-    */
-
     Type* type = ((Id*)lval)->getType();
     // SymbolEntry* se = lval->getSymbolEntry();
     bool flag = true;
