@@ -1,5 +1,5 @@
 # Compilation Principle
-Course assignment of Compilation Principle (NKU, Autumn 2022)   
+Course assignment of Compilation Principle (NKU, Fall 2022)   
 Lectured by [Gang Wang](https://cc.nankai.edu.cn/2021/0323/c13619a490377/page.htm).      
 Code frame from [2022NKUCS-Compilers-Lab](https://github.com/shm0214/2022NKUCS-Compilers-Lab/tree/lab7).
 
